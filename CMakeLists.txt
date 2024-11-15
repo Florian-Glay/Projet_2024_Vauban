@@ -1,9 +1,10 @@
-cmake_minimum_required (VERSION 3.9)
+cmake_minimum_required (VERSION 3.15)
 
-project(thread_example)
+cmake_policy(SET CMP0091 NEW)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+project(SFML)
+
+set (CMAKE_CXX_STANDARD 20)
 
 if(MSVC)
     set(SFML_DIR "C:/Program Files/SFML/lib/cmake/SFML")
@@ -15,10 +16,7 @@ if(MSVC)
     )
 endif()
 
+find_package(SFML COMPONENTS window system graphics REQUIRED)
+link_libraries(sfml-graphics sfml-window)
+
 add_executable (traffic_light "traffic_light.cpp")
-target_link_libraries(traffic_light sfml-graphics sfml-window)
-
-find_package (Threads)
-find_package(SFML 2.5 COMPONENTS window system graphics REQUIRED)
-
-link_libraries (Threads::Threads)

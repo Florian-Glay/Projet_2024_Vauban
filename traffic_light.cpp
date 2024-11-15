@@ -4,7 +4,23 @@
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <mutex>
+
+// NEW 15/11/24
 #include <condition_variable>
+#include <cstdlib>
+
+using namespace std;
+using namespace sf;
+
+#ifdef _MSC_VER 
+#pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
+#define _PATH_IMG_ "C:/Program Files/SFML/img/"
+#else
+#define _PATH_IMG_ "img/"
+#endif
+
+const std::string path_image(_PATH_IMG_);
+// END_NEW 15/11/24
 
 enum class FeuEtat { Rouge, Vert };
 
@@ -88,7 +104,20 @@ int main() {
     threads.emplace_back(controleFeux, std::ref(feu_NS), std::ref(feu_EO));
 
     // Création de la fenêtre SFML pour afficher la simulation du carrefour
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Simulation de Carrefour");
+    sf::RenderWindow window(sf::VideoMode(1600, 1200), "Simulation de Carrefour");
+
+    // NEW 15/11/24 : Fond d'écran
+    Texture backgroundImage;
+    Sprite backgroundSprite;
+        //carSprite, runnerSprite; !carImage.loadFromFile(path_image + "car.png")
+
+    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
+        cerr << "Erreur pendant le chargement des images" << endl;
+        return EXIT_FAILURE; // On ferme le programme
+    }
+
+    backgroundSprite.setTexture(backgroundImage);
+    // END_NEW 15/11/24
 
     while (window.isOpen()) {
         sf::Event event;
@@ -99,8 +128,12 @@ int main() {
 
         // Effacer la fenêtre pour redessiner les éléments
         window.clear(sf::Color::White);
+        
 
         // Dessiner les routes
+        window.draw(backgroundSprite);
+
+        /*
         sf::RectangleShape routeH(sf::Vector2f(800, 50));
         routeH.setPosition(0, 275);
         routeH.setFillColor(sf::Color(128, 128, 128)); // Route horizontale
@@ -111,6 +144,7 @@ int main() {
 
         window.draw(routeH);
         window.draw(routeV);
+        */
 
         // Dessin des feux de circulation
         sf::CircleShape feuNS(10);
