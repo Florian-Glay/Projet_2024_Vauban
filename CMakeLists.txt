@@ -21,4 +21,4 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 find_package(SFML COMPONENTS window system graphics REQUIRED)
 link_libraries(sfml-graphics sfml-window)
 
-add_executable (traffic_light "traffic_light.cpp")
+add_executable (traffic_light1 "traffic_light.cpp")
