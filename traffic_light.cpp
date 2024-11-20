@@ -111,7 +111,7 @@ int main() {
     Sprite backgroundSprite;
     //carSprite, runnerSprite; !carImage.loadFromFile(path_image + "car.png")
 
-    if (!backgroundImage.loadFromFile(path_image + "map1.png")) {
+    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
         cerr << "Erreur pendant le chargement des images" << endl;
         return EXIT_FAILURE; // On ferme le programme
     }
