@@ -24,8 +24,6 @@ const std::string path_image(_PATH_IMG_);
 
 enum class FeuEtat { Rouge, Vert };
 
-
-
 class FeuCirculation {
 private:
     FeuEtat etat;
@@ -54,33 +52,28 @@ public:
 
 class Usager {
 protected:
-    sf::Sprite sprite;
-    sf::Texture texture;
+    sf::RectangleShape shape;
     int vitesse;
     FeuCirculation& feu;
 
 public:
-    Usager(const std::string& imagePath, int pos_x, int pos_y, int vitesse_, FeuCirculation& feu_)
+    Usager(int pos_x, int pos_y, int vitesse_, FeuCirculation& feu_, sf::Color color)
         : vitesse(vitesse_), feu(feu_) {
-        if (!texture.loadFromFile(imagePath)) {
-            cerr << "Erreur lors du chargement de l'image de la voiture" << endl;
-            exit(EXIT_FAILURE);
-        }
-        sprite.setTexture(texture);
-        sprite.setPosition(pos_x, pos_y);
+        shape.setSize(sf::Vector2f(20, 20));
+        shape.setPosition(pos_x, pos_y);
+        shape.setFillColor(color);
     }
 
     virtual void deplacer() {
         while (true) {
             feu.attendreVert();  // Attendre que le feu soit vert pour avancer
-            sprite.move(vitesse, 0);  // Avance sur l'axe des x
+            shape.move(vitesse, 0);  // Avance sur l'axe des x
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
-    sf::Sprite& getSprite() { return sprite; }
+    sf::RectangleShape& getShape() { return shape; }
 };
-
 
 // Gestion des feux de chaque direction du carrefour
 void controleFeux(FeuCirculation& feu_NS, FeuCirculation& feu_EO) {
@@ -101,9 +94,9 @@ int main() {
     FeuCirculation feu_NS;
     FeuCirculation feu_EO;
 
-    // Usagers avec images
-    Usager voiture_NS(path_image + "voiture_bleue.png", 400, 100, 5, feu_NS);
-    Usager voiture_EO(path_image + "voiture_verte.png", 100, 300, 5, feu_EO);
+    // Usagers arrivant de chaque direction du carrefour
+    Usager voiture_NS(400, 100, 5, feu_NS, sf::Color::Blue);
+    Usager voiture_EO(100, 300, 5, feu_EO, sf::Color::Green);
 
     std::vector<std::thread> threads;
     threads.emplace_back(&Usager::deplacer, &voiture_NS);
@@ -111,18 +104,20 @@ int main() {
     threads.emplace_back(controleFeux, std::ref(feu_NS), std::ref(feu_EO));
 
     // Création de la fenêtre SFML pour afficher la simulation du carrefour
-    sf::RenderWindow window(sf::VideoMode(1280, 800), "Simulation de Carrefour");
+    sf::RenderWindow window(sf::VideoMode(900, 900), "Simulation de Carrefour");
 
-    // Fond d'écran
+    // NEW 15/11/24 : Fond d'écran
     Texture backgroundImage;
     Sprite backgroundSprite;
+    //carSprite, runnerSprite; !carImage.loadFromFile(path_image + "car.png")
 
-    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
-        cerr << "Erreur pendant le chargement de l'arrière-plan" << endl;
+    if (!backgroundImage.loadFromFile(path_image + "map1.png")) {
+        cerr << "Erreur pendant le chargement des images" << endl;
         return EXIT_FAILURE; // On ferme le programme
     }
 
     backgroundSprite.setTexture(backgroundImage);
+    // END_NEW 15/11/24
 
     while (window.isOpen()) {
         sf::Event event;
@@ -134,8 +129,22 @@ int main() {
         // Effacer la fenêtre pour redessiner les éléments
         window.clear(sf::Color::White);
 
-        // Dessiner le fond d'écran
+
+        // Dessiner les routes
         window.draw(backgroundSprite);
+
+        /*
+        sf::RectangleShape routeH(sf::Vector2f(800, 50));
+        routeH.setPosition(0, 275);
+        routeH.setFillColor(sf::Color(128, 128, 128)); // Route horizontale
+
+        sf::RectangleShape routeV(sf::Vector2f(50, 600));
+        routeV.setPosition(375, 0);
+        routeV.setFillColor(sf::Color(128, 128, 128)); // Route verticale
+
+        window.draw(routeH);
+        window.draw(routeV);
+        */
 
         // Dessin des feux de circulation
         sf::CircleShape feuNS(10);
@@ -149,9 +158,9 @@ int main() {
         window.draw(feuNS);
         window.draw(feuEO);
 
-        // Dessin des voitures
-        window.draw(voiture_NS.getSprite());
-        window.draw(voiture_EO.getSprite());
+        // Dessin des usagers
+        window.draw(voiture_NS.getShape());
+        window.draw(voiture_EO.getShape());
 
         // Afficher tous les éléments dessinés
         window.display();
@@ -166,5 +175,3 @@ int main() {
 
     return 0;
 }
-
-

@@ -16,6 +16,8 @@ if(MSVC)
     )
 endif()
 
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+
 find_package(SFML COMPONENTS window system graphics REQUIRED)
 link_libraries(sfml-graphics sfml-window)
 
