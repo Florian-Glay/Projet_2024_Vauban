@@ -158,7 +158,20 @@ int main() {
     threads.emplace_back(controleFeux, std::ref(feu_NS), std::ref(feu_EO));
 
     // Fenêtre graphique
-    sf::RenderWindow window(sf::VideoMode(900, 900), "Simulation de Carrefour");
+    sf::RenderWindow window(sf::VideoMode(864, 864), "Simulation de Carrefour");
+
+    // NEW 15/11/24 : Fond d'écran
+    Texture backgroundImage;
+    Sprite backgroundSprite;
+    //carSprite, runnerSprite; !carImage.loadFromFile(path_image + "car.png")
+
+    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
+        cerr << "Erreur pendant le chargement des images" << endl;
+        return EXIT_FAILURE; // On ferme le programme
+    }
+
+    backgroundSprite.setTexture(backgroundImage);
+    // END-NEW 15/11/24 : Fond d'écran
 
     while (window.isOpen()) {
         sf::Event event;
@@ -169,6 +182,9 @@ int main() {
 
         // Effacer la fenêtre
         window.clear(sf::Color::White);
+
+        // Dessiner les routes
+        window.draw(backgroundSprite);
 
         // Dessiner les feux
         sf::CircleShape feuNS(10);
