@@ -1,18 +1,17 @@
-#include <iostream> 
-#include <thread>   
+#include <iostream>
+#include <thread>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <vector>
 #include <mutex>
-
-// NEW 15/11/24
 #include <condition_variable>
 #include <cstdlib>
+#include <memory>
 
 using namespace std;
 using namespace sf;
 
-#ifdef _MSC_VER 
+#ifdef _MSC_VER
 #pragma comment(linker, "/SUBSYSTEM:windows /ENTRY:mainCRTStartup")
 #define _PATH_IMG_ "C:/Program Files/SFML/img/"
 #else
@@ -20,10 +19,10 @@ using namespace sf;
 #endif
 
 const std::string path_image(_PATH_IMG_);
-// END_NEW 15/11/24
 
-enum class FeuEtat { Rouge, Vert };
+enum class FeuEtat { Rouge, Orange, Vert };
 
+// Classe pour les feux de circulation
 class FeuCirculation {
 private:
     FeuEtat etat;
@@ -31,11 +30,21 @@ private:
     std::condition_variable cv;
 
 public:
-    FeuCirculation() : etat(FeuEtat::Rouge) {}
+    Vector2f position; // Position du feu
+
+    FeuCirculation(Vector2f pos) : etat(FeuEtat::Rouge), position(pos) {}
 
     void changerEtat() {
         std::lock_guard<std::mutex> lock(mtx);
-        etat = (etat == FeuEtat::Rouge) ? FeuEtat::Vert : FeuEtat::Rouge;
+        if (etat == FeuEtat::Rouge) {
+            etat = FeuEtat::Vert;  // Passer de Rouge à Vert
+        }
+        else if (etat == FeuEtat::Vert) {
+            etat = FeuEtat::Orange;  // Passer de Vert à Orange
+        }
+        else if (etat == FeuEtat::Orange) {
+            etat = FeuEtat::Rouge;  // Passer d'Orange à Rouge
+        }
         cv.notify_all();
     }
 
@@ -43,81 +52,113 @@ public:
         std::lock_guard<std::mutex> lock(mtx);
         return etat;
     }
-
-    void attendreVert() {
-        std::unique_lock<std::mutex> lock(mtx);
-        cv.wait(lock, [this] { return etat == FeuEtat::Vert; });
-    }
 };
 
+// Classe de base pour un usager
 class Usager {
 protected:
     sf::RectangleShape shape;
     int vitesse;
     FeuCirculation& feu;
+    int directionX, directionY; // Direction de déplacement
+    Vector2f limiteArret;      // Position où s'arrêter au feu rouge
+    bool feuDepasse;           // Indique si le véhicule a dépassé le feu
 
 public:
-    Usager(int pos_x, int pos_y, int vitesse_, FeuCirculation& feu_, sf::Color color)
-        : vitesse(vitesse_), feu(feu_) {
+    Usager(int pos_x, int pos_y, int vitesse_, FeuCirculation& feu_, sf::Color color, int dirX, int dirY)
+        : vitesse(vitesse_), feu(feu_), directionX(dirX), directionY(dirY), feuDepasse(false) {
         shape.setSize(sf::Vector2f(20, 20));
         shape.setPosition(pos_x, pos_y);
         shape.setFillColor(color);
+
+        // Calcul de la limite d'arrêt au feu
+        limiteArret = feu.position - Vector2f(dirX * 30, dirY * 30); // 30 pixels avant le feu
     }
 
     virtual void deplacer() {
         while (true) {
-            feu.attendreVert();  // Attendre que le feu soit vert pour avancer
-            shape.move(vitesse, 0);  // Avance sur l'axe des x
+            Vector2f pos = shape.getPosition();
+
+            // Vérifier si le véhicule a dépassé le feu
+            if (!feuDepasse &&
+                ((directionX > 0 && pos.x >= feu.position.x) ||
+                    (directionX < 0 && pos.x + 20 <= feu.position.x) ||
+                    (directionY > 0 && pos.y >= feu.position.y) ||
+                    (directionY < 0 && pos.y + 20 <= feu.position.y))) {
+                feuDepasse = true; // Le véhicule ne sera plus impacté par le feu
+            }
+
+            // Si le feu est rouge ou orange et que le véhicule n'a pas dépassé, il s'arrête avant le feu
+            if (!feuDepasse && (feu.obtenirEtat() == FeuEtat::Rouge || feu.obtenirEtat() == FeuEtat::Orange) &&
+                ((directionX != 0 && ((directionX > 0 && pos.x + 20 >= limiteArret.x) ||
+                    (directionX < 0 && pos.x <= limiteArret.x))) ||
+                    (directionY != 0 && ((directionY > 0 && pos.y + 20 >= limiteArret.y) ||
+                        (directionY < 0 && pos.y <= limiteArret.y))))) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                continue;
+            }
+
+            // Déplacement normal
+            shape.move(vitesse * directionX, vitesse * directionY);
+
+            // Si le véhicule dépasse les limites de la fenêtre, il revient au point de départ
+            if (pos.x < -20 || pos.x > 900 || pos.y < -20 || pos.y > 900) {
+                resetPosition();
+                feuDepasse = false; // Réinitialiser l'état au point de départ
+            }
+
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
         }
     }
 
     sf::RectangleShape& getShape() { return shape; }
+
+    virtual void resetPosition() {
+        // Remet le véhicule au point de départ en fonction de sa direction
+        if (directionX > 0)
+            shape.setPosition(0, shape.getPosition().y);  // Revenir à gauche
+        else if (directionX < 0)
+            shape.setPosition(880, shape.getPosition().y); // Revenir à droite
+        else if (directionY > 0)
+            shape.setPosition(shape.getPosition().x, 0);  // Revenir en haut
+        else if (directionY < 0)
+            shape.setPosition(shape.getPosition().x, 880); // Revenir en bas
+    }
 };
 
-// Gestion des feux de chaque direction du carrefour
+// Contrôle des feux de circulation
 void controleFeux(FeuCirculation& feu_NS, FeuCirculation& feu_EO) {
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(5));
         feu_NS.changerEtat();
         feu_EO.changerEtat();
-        std::cout << "Changement de feux! Nord-Sud : "
-            << (feu_NS.obtenirEtat() == FeuEtat::Vert ? "Vert" : "Rouge")
-            << ", Est-Ouest : "
-            << (feu_EO.obtenirEtat() == FeuEtat::Vert ? "Vert" : "Rouge")
-            << std::endl;
     }
 }
 
+// Fonction principale
 int main() {
-    // Feux de circulation pour les directions Nord-Sud et Est-Ouest
-    FeuCirculation feu_NS;
-    FeuCirculation feu_EO;
+    // Initialisation des feux
+    FeuCirculation feu_NS(Vector2f(400, 200));
+    FeuCirculation feu_EO(Vector2f(300, 400));
 
-    // Usagers arrivant de chaque direction du carrefour
-    Usager voiture_NS(400, 100, 5, feu_NS, sf::Color::Blue);
-    Usager voiture_EO(100, 300, 5, feu_EO, sf::Color::Green);
+    // Création des usagers
+    std::vector<std::unique_ptr<Usager>> usagers;
+    usagers.emplace_back(std::make_unique<Usager>(400, 0, 2, feu_NS, sf::Color::Blue, 0, 1));  // Voiture Nord-Sud
+    usagers.emplace_back(std::make_unique<Usager>(0, 300, 2, feu_EO, sf::Color::Green, 1, 0)); // Voiture Est-Ouest
+    usagers.emplace_back(std::make_unique<Usager>(500, 880, 2, feu_NS, sf::Color::Red, 0, -1)); // Voiture Sud-Nord
+    usagers.emplace_back(std::make_unique<Usager>(880, 500, 2, feu_EO, sf::Color::Yellow, -1, 0)); // Voiture Ouest-Est
 
+    // Threads pour les usagers
     std::vector<std::thread> threads;
-    threads.emplace_back(&Usager::deplacer, &voiture_NS);
-    threads.emplace_back(&Usager::deplacer, &voiture_EO);
-    threads.emplace_back(controleFeux, std::ref(feu_NS), std::ref(feu_EO));
-
-    // Création de la fenêtre SFML pour afficher la simulation du carrefour
-    sf::RenderWindow window(sf::VideoMode(900, 900), "Simulation de Carrefour");
-
-    // NEW 15/11/24 : Fond d'écran
-    Texture backgroundImage;
-    Sprite backgroundSprite;
-    //carSprite, runnerSprite; !carImage.loadFromFile(path_image + "car.png")
-
-    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
-        cerr << "Erreur pendant le chargement des images" << endl;
-        return EXIT_FAILURE; // On ferme le programme
+    for (auto& usager : usagers) {
+        threads.emplace_back(&Usager::deplacer, usager.get());
     }
 
-    backgroundSprite.setTexture(backgroundImage);
-    // END_NEW 15/11/24
+    // Thread pour contrôler les feux
+    threads.emplace_back(controleFeux, std::ref(feu_NS), std::ref(feu_EO));
+
+    // Fenêtre graphique
+    sf::RenderWindow window(sf::VideoMode(900, 900), "Simulation de Carrefour");
 
     while (window.isOpen()) {
         sf::Event event;
@@ -126,47 +167,40 @@ int main() {
                 window.close();
         }
 
-        // Effacer la fenêtre pour redessiner les éléments
+        // Effacer la fenêtre
         window.clear(sf::Color::White);
 
-
-        // Dessiner les routes
-        window.draw(backgroundSprite);
-
-        /*
-        sf::RectangleShape routeH(sf::Vector2f(800, 50));
-        routeH.setPosition(0, 275);
-        routeH.setFillColor(sf::Color(128, 128, 128)); // Route horizontale
-
-        sf::RectangleShape routeV(sf::Vector2f(50, 600));
-        routeV.setPosition(375, 0);
-        routeV.setFillColor(sf::Color(128, 128, 128)); // Route verticale
-
-        window.draw(routeH);
-        window.draw(routeV);
-        */
-
-        // Dessin des feux de circulation
+        // Dessiner les feux
         sf::CircleShape feuNS(10);
-        feuNS.setPosition(390, 250);
-        feuNS.setFillColor(feu_NS.obtenirEtat() == FeuEtat::Vert ? sf::Color::Green : sf::Color::Red);
+        feuNS.setPosition(feu_NS.position);
+        if (feu_NS.obtenirEtat() == FeuEtat::Vert)
+            feuNS.setFillColor(sf::Color::Green);
+        else if (feu_NS.obtenirEtat() == FeuEtat::Orange)
+            feuNS.setFillColor(sf::Color(255, 165, 0)); // Couleur orange
+        else
+            feuNS.setFillColor(sf::Color::Red);
 
         sf::CircleShape feuEO(10);
-        feuEO.setPosition(350, 300);
-        feuEO.setFillColor(feu_EO.obtenirEtat() == FeuEtat::Vert ? sf::Color::Green : sf::Color::Red);
+        feuEO.setPosition(feu_EO.position);
+        if (feu_EO.obtenirEtat() == FeuEtat::Vert)
+            feuEO.setFillColor(sf::Color::Green);
+        else if (feu_EO.obtenirEtat() == FeuEtat::Orange)
+            feuEO.setFillColor(sf::Color(255, 165, 0)); // Couleur orange
+        else
+            feuEO.setFillColor(sf::Color::Red);
 
         window.draw(feuNS);
         window.draw(feuEO);
 
-        // Dessin des usagers
-        window.draw(voiture_NS.getShape());
-        window.draw(voiture_EO.getShape());
+        // Dessiner les usagers
+        for (auto& usager : usagers) {
+            window.draw(usager->getShape());
+        }
 
-        // Afficher tous les éléments dessinés
         window.display();
     }
 
-    // Attendre que les threads se terminent
+    // Attendre la fin des threads
     for (auto& thread : threads) {
         if (thread.joinable()) {
             thread.join();
@@ -175,3 +209,5 @@ int main() {
 
     return 0;
 }
+
+
