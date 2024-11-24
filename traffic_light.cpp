@@ -77,7 +77,7 @@ public:
 
     virtual void deplacer() {
         FeuEtat myLight = feu.obtenirEtat();
-        float coeffV = 1.0;
+        float coeffV = 0.0;
         while (true) {
             Vector2f pos = shape.getPosition();
 
@@ -217,9 +217,9 @@ int main() {
     // Création des usagers
     std::vector<std::unique_ptr<Usager>> usagers;
     usagers.emplace_back(std::make_unique<Usager>(360, 0, 4, feu_NS, sf::Color::Blue, 0, 1));  // Voiture Nord-Sud
-    usagers.emplace_back(std::make_unique<Usager>(0, 478, 2, feu_EO, sf::Color::Green, 1, 0)); // Voiture Est-Ouest
+    usagers.emplace_back(std::make_unique<Usager>(0, 478, 4, feu_EO, sf::Color::Green, 1, 0)); // Voiture Est-Ouest
     usagers.emplace_back(std::make_unique<Usager>(485, 880, 4, feu_SN, sf::Color::Red, 0, -1)); // Voiture Sud-Nord
-    usagers.emplace_back(std::make_unique<Usager>(880, 380, 2, feu_OE, sf::Color::Yellow, -1, 0)); // Voiture Ouest-Est
+    usagers.emplace_back(std::make_unique<Usager>(880, 380, 4, feu_OE, sf::Color::Yellow, -1, 0)); // Voiture Ouest-Est
 
     // Threads pour les usagers
     std::vector<std::thread> threads;
