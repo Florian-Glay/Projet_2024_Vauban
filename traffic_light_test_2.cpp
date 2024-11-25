@@ -102,10 +102,7 @@ protected:
     bool feuDepasse;
     bool isBus;
     bool hasTurn = false;
-    // Liste des croisements (coordonnées approximatives)
-    vector<Vector2f> croisements = {
-        {410, 410},{410, 450}//, {620, 170}, {240, 680}, {620, 680}
-    };
+    int croisements[4][2] = { {410, 414}, {410, 450}, {460, 414}, {460, 450} };
     FeuCirculation** feuVehicules; // Tableau de pointeurs vers les feux
     FeuCirculation* feu;          // Pointeur vers le feu associé à la voiture
 
@@ -119,7 +116,7 @@ public:
         }
         sprite.setTexture(texture);
         sprite.setPosition(pos_x, pos_y);
-        orienterSprite(feuVehicules); // Réorienter après réinitialisation
+        resetPosition();
         sprite.setScale(size, size); // Changez les valeurs pour ajuster la taille
     }
 
@@ -145,7 +142,11 @@ public:
             // Vérifier si on arrive à un croisement
             if (estAuCroisement(pos)) {
                 choisirNouvelleDirection();
-                orienterSprite(feuVehicules);
+                orienterSpriteFeu(feuVehicules);
+            }
+
+            if (hasTurn) {
+                orienterSprite();
             }
 
             // Vérifier si le véhicule a dépassé le feu
@@ -251,64 +252,133 @@ public:
             else if (directionY < 0)
                 sprite.setPosition(460, 990);
         }
+
+        if (directionX > 0) { sprite.setRotation(0); }
+        else if (directionX < 0) { sprite.setRotation(180); }
+        else if (directionY > 0) { sprite.setRotation(90); }
+        else if (directionY < 0) { sprite.setRotation(270); }
         
-        orienterSprite(feuVehicules); // Réorienter après réinitialisation
+        orienterSpriteFeu(feuVehicules); // Réorienter après réinitialisation
         hasTurn = false;
 
     }
 
 private:
 
-    void orienterSprite(FeuCirculation* tab[]) {
+    void orienterSpriteFeu(FeuCirculation* tab[]) {
         if (directionX > 0) {
-            sprite.setRotation(0); 
             feu = tab[2];
         }
         else if (directionX < 0) {
-            sprite.setRotation(180);
             feu = tab[3];
         }
         else if (directionY > 0) {
-            sprite.setRotation(90);
             feu = tab[0];
         }
         else if (directionY < 0) {
-            sprite.setRotation(270);
             feu = tab[1];
         }
         limiteArret = feu->position - Vector2f(directionX * 30, directionY * 30);
     }
 
+    void orienterSprite() {
+        static const float rotationSpeed = 18.0f; // Vitesse de rotation en degrés par seconde
+        float targetAngle = sprite.getRotation(); // Angle actuel du sprite
+
+        // Déterminer l'angle cible en fonction de la direction
+        if (directionX > 0) { targetAngle = 0; }
+        else if (directionX < 0) { targetAngle = 180; }
+        else if (directionY > 0) { targetAngle = 90; }
+        else if (directionY < 0) { targetAngle = 270; }
+
+        // Obtenir l'angle actuel
+        float currentAngle = sprite.getRotation();
+
+        // Gérer les cas où l'angle dépasse 360 ou devient négatif
+        while (currentAngle < 0) currentAngle += 360;
+        while (currentAngle >= 360) currentAngle -= 360;
+
+        // Calculer la différence d'angle en considérant la continuité angulaire
+        float angleDifference = targetAngle - currentAngle;
+        if (angleDifference > 180) angleDifference -= 360;
+        if (angleDifference < -180) angleDifference += 360;
+
+        // Calculer la rotation à appliquer en fonction de la vitesse et du temps écoulé
+        float rotationStep = rotationSpeed * 0.4;
+        if (std::abs(angleDifference) < rotationStep) {
+            // Si la différence est petite, ajuster directement
+            sprite.setRotation(targetAngle);
+            hasTurn = false;
+        }
+        else {
+            // Sinon, ajuster progressivement
+            sprite.setRotation(currentAngle + rotationStep * (angleDifference > 0 ? 1 : -1));
+        }
+    }
+
     bool estAuCroisement(const Vector2f& pos) {
-        int i = 0;
-        for (const auto& croisement : croisements) {
-            if (!hasTurn && std::abs(pos.x - croisement.x) < 1 && std::abs(pos.y - croisement.y) < 1) {
+        for (int k = 0; k < 4; k++) {
+            if (!hasTurn && std::abs(pos.x - croisements[k][0]) < 2 && std::abs(pos.y - croisements[k][1]) < 2) {
                 hasTurn = true;
-                turn = i;
+                turn = k;
+                cout << "turn : " << turn << endl;
                 return true;
             }
-            i++;
         }
         return false;
     }
 
     void choisirNouvelleDirection() {
-        // Générer un choix aléatoire : 0 = gauche, 1 = tout droit, 2 = droite
+        // Générer un choix aléatoire
         static std::random_device rd;
         static std::mt19937 gen(rd());
         std::uniform_int_distribution<> distrib(0, 2);
 
         int choix = distrib(gen);
 
-        if (choix == 0 || true) { // Tourner
-            if (turn == 3) { 
-                directionY = 0;
-                directionX = -1;
+        if (choix == 0) { // Tourner
+            if (turn == 0) { 
+                if (directionY > 0) {
+                    directionY = 0;
+                    directionX = -1;
+                }
+                else if (directionX < 0) {
+                    directionY = 1;
+                    directionX = 0;
+                }
             }
-            else { 
-                directionY = 0;
-                directionX = 1;
-               
+            else if (turn == 1) {
+                if (directionY > 0) {
+                    directionY = 0;
+                    directionX = 1;
+                }
+                else if (directionX > 0) {
+                    directionY = 1;
+                    directionX = 0;
+                }
+            }
+            else if (turn == 2) {
+                if (directionY < 0) {
+                    directionY = 0;
+                    directionX = -1;
+                }
+                else if (directionX < 0) {
+                    directionY = -1;
+                    directionX = 0;
+                }
+            }
+            else if (turn == 3) {
+                if (directionY < 0) {
+                    directionY = 0;
+                    directionX = 1;
+                }
+                else if (directionX > 0) {
+                    directionY = -1;
+                    directionX = 0;
+                }
+            }
+            else {
+                hasTurn = false;
             }
         }
     }
@@ -325,12 +395,14 @@ int main() {
     vector<FeuCirculation*> feux = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
 
     thread controleThread(&FeuCirculation::controleFeux, std::ref(feux));
-
+    
     vector<unique_ptr<Usager>> usagers;
     usagers.emplace_back(make_unique<Usager>(410, 0, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, 1,false));
-    usagers.emplace_back(make_unique<Usager>(0, 450, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 1, 0, false));
     usagers.emplace_back(make_unique<Usager>(460, 880, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, -1, false));
+
+    usagers.emplace_back(make_unique<Usager>(0, 450, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 1, 0, false));
     usagers.emplace_back(make_unique<Usager>(880, 414, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", -1, 0, false));
+
     usagers.emplace_back(make_unique<Usager>(1000, 335, 3, feu_vehicule, 0.7, path_image + "bus_1.png", -1, 0,true));
     usagers.emplace_back(make_unique<Usager>(-150, 525, 3, feu_vehicule, 0.7, path_image + "bus_1.png", 1, 0,true));
 
