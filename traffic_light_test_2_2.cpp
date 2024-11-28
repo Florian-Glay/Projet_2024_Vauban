@@ -23,6 +23,8 @@ constexpr char _PATH_IMG_[] = "img/";
 const std::string path_image(_PATH_IMG_);
 
 enum class FeuEtat { Rouge, Orange, Vert };
+enum class PlaqueEtat { Ralentisseur, Stop, TournerDG, TournerD, TournerG, CommencerTurn };
+enum class PlaqueDeg { Droite, Gauche, Haut, Bas };
 
 class FeuCirculation {
 private:
@@ -92,8 +94,57 @@ public:
     }
 };
 
+class Plaque {
+private:
+    RectangleShape plaque;
+    FeuCirculation* feuAssocie; // Feu associé à cette plaque
+    PlaqueEtat myEtat;
+
+public:
+    Plaque(float x, float y, FeuCirculation* feu, PlaqueEtat p_etat, float tailleX, float tailleY, PlaqueDeg orientation)
+        : feuAssocie(feu), myEtat(p_etat) {
+        plaque.setSize(Vector2f(tailleX, tailleY));
+        plaque.setFillColor(Color(200, 200, 200, 150));
+        plaque.setPosition(x, y);
+        if (orientation == PlaqueDeg::Droite) {
+            plaque.setOrigin(plaque.getGlobalBounds().width, plaque.getGlobalBounds().height / 2);
+        }
+        else if (orientation == PlaqueDeg::Gauche) {
+            plaque.setOrigin(0, plaque.getGlobalBounds().height / 2);
+        }
+        else if (orientation == PlaqueDeg::Haut) {
+            plaque.setOrigin(plaque.getGlobalBounds().width / 2, plaque.getGlobalBounds().height);
+        }
+        else if (orientation == PlaqueDeg::Bas) {
+            plaque.setOrigin(plaque.getGlobalBounds().width / 2, 0);
+        }
+    }
+
+    Vector2f getPosition() const {
+        return plaque.getPosition();
+    }
+
+    void dessiner(RenderWindow& window) const {
+        window.draw(plaque);
+    }
+
+    FeuEtat obtenirEtatFeu() const {
+        return feuAssocie->obtenirEtat();
+    }
+
+    PlaqueEtat obtenirEtatPlaque() const {
+        return myEtat;
+    }
+
+    FloatRect getGlobalBounds() const {
+        return plaque.getGlobalBounds();
+    }
+};
+
+
 class Usager {
 protected:
+    bool hasTurn = false;
     Sprite sprite;
     Texture texture;
     int vitesse;
@@ -101,12 +152,10 @@ protected:
     Vector2f limiteArret;
     bool feuDepasse;
     bool isBus;
-    bool hasTurn = false;
+    bool collisionDetectee = false;
     int croisements[4][2] = { {410, 414}, {410, 450}, {460, 414}, {460, 450} };
     FeuCirculation** feuVehicules; // Tableau de pointeurs vers les feux
-    FeuCirculation* feu;          // Pointeur vers le feu associé à la voiture
-
-    int turn = 0;
+    FeuCirculation* feu;
 
 public:
     Usager(int pos_x, int pos_y, int vitesse_, FeuCirculation* tab[], float size, const std::string& image_path, int dirX, int dirY, bool bus)
@@ -115,119 +164,95 @@ public:
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
         sprite.setTexture(texture);
-        sf::FloatRect bounds = sprite.getLocalBounds();
-        //sprite.setOrigin(bounds.width / 2, bounds.height / 2);
-        
+        sf::FloatRect bounds = sprite.getGlobalBounds();
+        sprite.setOrigin(bounds.width/2, bounds.height / 2);
+
         sprite.setPosition(pos_x, pos_y);
         resetPosition();
-        sprite.setScale(size, size); // Changez les valeurs pour ajuster la taille
+        sprite.setScale(size, size);
     }
 
-    virtual void deplacer() {
-        FeuEtat myLight = feu->obtenirEtat();
-        float coeffV = 0.0;
-        hasTurn = false;
+    virtual void deplacer(vector<Plaque>& plaques) {
+        float coeffV = 1.0; // Coefficient de vitesse
+        int plaque_touch = 1;
+       
+
         while (true) {
             Vector2f pos = sprite.getPosition();
-            Vector2f reelpos = sprite.getPosition();
-
-
-            if (isBus) {
-                pos.x = (directionX < 0) ? pos.x -= 115 : pos.x += 115;
-            }
-            if (pos.y < 0) {
-                pos.y = 0;
-            }
-            if (pos.x < 0) {
-                pos.x = 0;
-            }
-
-            // Vérifier si on arrive à un croisement
-            if (estAuCroisement(pos)) {
-                choisirNouvelleDirection();
-                orienterSpriteFeu(feuVehicules);
-            }
-
-            if (hasTurn) {
-                orienterSprite();
-            }
-
-            // Vérifier si le véhicule a dépassé le feu
-            if (!feuDepasse &&
-                ((directionX > 0 && pos.x - 20 >= feu->position.x) ||
-                    (directionX < 0 && pos.x + 20 <= feu->position.x) ||
-                    (directionY > 0 && pos.y - 20 >= feu->position.y) ||
-                    (directionY < 0 && pos.y + 20 <= feu->position.y))) {
-                feuDepasse = true; // Le véhicule ne sera plus impacté par le feu
-            }
-
-            // Si le feu est rouge ou orange et que le véhicule n'a pas dépassé, il s'arrête avant le feu
-            if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Rouge) &&
-                ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x - 30) ||
-                    (directionX < 0 && pos.x <= limiteArret.x + 100))) ||
-                    (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y - 100) ||
-                        (directionY < 0 && pos.y <= limiteArret.y + 100))))) {
-                if (coeffV <= 0.7) {
-                    coeffV = coeffV * 0.95;
-                }
-                else {
-                    coeffV = 0.7;
+            int count = 0;
+            bool stop_P = false;
+            bool touching = false;
+            float dist = -1.0;
+            // Détection de collision avec les plaques
+            for (auto& plaque : plaques) {
+                if (plaque.getGlobalBounds().intersects(sprite.getGlobalBounds())) {
+                    touching = true;
+                    FeuEtat etatFeu = plaque.obtenirEtatFeu();
+                    PlaqueEtat etatP = plaque.obtenirEtatPlaque();
+                    if (etatP == PlaqueEtat::Ralentisseur) {
+                        if ((etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) && plaque_touch != 3) {
+                            plaque_touch = 2; // Ralentissement progressive
+                            //std::cout << coeffV << std::endl;
+                        }
+                        if (etatFeu == FeuEtat::Vert){
+                            plaque_touch = 1;
+                            touching = false;
+                        }
+                    }
+                    else if (etatP == PlaqueEtat::Stop) {
+                         if (etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) {
+                             plaque_touch = 3;
+                             Vector2f plaqueBounds = plaque.getPosition();
+                             // Calcul de la distance
+                             float dx = plaqueBounds.x - pos.x;
+                             float dy = plaqueBounds.y - pos.y;
+                             dist = sqrt(dx * dx + dy * dy) - 25;
+                             // Ralentissement progressive
+                            //std::cout << coeffV << std::endl;
+                         }
+                         if (etatFeu == FeuEtat::Vert) {
+                             plaque_touch = 1;
+                             touching = false;
+                         }
+                    }
                 }
 
-                if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Rouge) &&
-                    ((directionX != 0 && ((directionX > 0 && pos.x + 40 >= limiteArret.x) ||
-                        (directionX < 0 && pos.x <= limiteArret.x + 70))) ||
-                        (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y) ||
-                            (directionY < 0 && pos.y <= limiteArret.y + 60))))) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                    coeffV = 0.0;
-                    continue;
+                if ((count > plaques.size() - 1) && !touching) { //plaque == plaques.end() && !touching
+                    plaque_touch = 1;
                 }
+                count++;
             }
-            else if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange && myLight != feu->obtenirEtat()) &&
-                ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x - 50) ||
-                    (directionX < 0 && pos.x <= limiteArret.x  + 50))) ||
-                    (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y - 50) ||
-                        (directionY < 0 && pos.y <= limiteArret.y +60))))) {
-                feuDepasse = true;
-                myLight = feu->obtenirEtat();
-            }
-            else if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange) &&
-                 ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x - 60) ||
-                    (directionX < 0 && pos.x <= limiteArret.x + 90))) ||
-                    (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y - 100) ||
-                        (directionY < 0 && pos.y <= limiteArret.y + 100))))) {
-                 if (coeffV <= 0.7) {
-                    coeffV = coeffV * 0.99;
-                 }
-                 else {
-                    coeffV = 0.5;
-                 }
 
-                 myLight = feu->obtenirEtat();
-                 if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange) &&
-                    ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x) ||
-                        (directionX < 0 && pos.x <= limiteArret.x + 70))) ||
-                        (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y) ||
-                            (directionY < 0 && pos.y <= limiteArret.y + 60))))) {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                    coeffV = 0.0;
-                    continue;
-                 }
-
-            }
-            else {
-
+            if (plaque_touch == 1) {
                 coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01)); // Accélération progressive
-                myLight = feu->obtenirEtat();
             }
+            else if(plaque_touch == 2){
+                coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
+            }
+            else if (plaque_touch == 3) {
+                if (dist >= 0.0) {
+                    if (coeffV < dist) {
+                        dist = dist * 0.9;
+                    }
+                    else {
+                        coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
+                    }
+                    
+                }
+            }
+            
 
             // Déplacement normal
-            sprite.move(vitesse * directionX * coeffV, vitesse * directionY * coeffV);
+            if (dist >= 0.0) {
+                sprite.move(vitesse * directionX * 0.01 * dist, vitesse * directionY * 0.01 * dist);
+            }
+            else {
+                sprite.move(vitesse * directionX * coeffV, vitesse * directionY * coeffV);
+            }
 
 
             // Si le véhicule dépasse les limites de la fenêtre, il revient au point de départ
-            if (reelpos.x < -160 || reelpos.x > 1000 || reelpos.y < -160 || reelpos.y > 1000) {
+            if (pos.x < -160 || pos.x > 1000 || pos.y < -160 || pos.y > 1000) {
                 resetPosition();
                 feuDepasse = false; // Réinitialiser l'état au point de départ
             }
@@ -247,20 +272,20 @@ public:
         }
         else {
             if (directionX > 0)
-                sprite.setPosition(-150, 450);
+                sprite.setPosition(-150, 490);
             else if (directionX < 0)
-                sprite.setPosition(990, 414);
+                sprite.setPosition(990, 370);
             else if (directionY > 0)
-                sprite.setPosition(410, -150);
+                sprite.setPosition(370, -150);
             else if (directionY < 0)
-                sprite.setPosition(460, 990);
+                sprite.setPosition(500, 990);
         }
 
         if (directionX > 0) { sprite.setRotation(0); }
         else if (directionX < 0) { sprite.setRotation(180); }
         else if (directionY > 0) { sprite.setRotation(90); }
         else if (directionY < 0) { sprite.setRotation(270); }
-        
+
         orienterSpriteFeu(feuVehicules); // Réorienter après réinitialisation
         hasTurn = false;
 
@@ -319,72 +344,6 @@ private:
         }
     }
 
-    bool estAuCroisement(const Vector2f& pos) {
-        for (int k = 0; k < 4; k++) {
-            if (!hasTurn && std::abs(pos.x - croisements[k][0]) < 2 && std::abs(pos.y - croisements[k][1]) < 2) {
-                hasTurn = true;
-                turn = k;
-                cout << "turn : " << turn << endl;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    void choisirNouvelleDirection() {
-        // Générer un choix aléatoire
-        static std::random_device rd;
-        static std::mt19937 gen(rd());
-        std::uniform_int_distribution<> distrib(0, 2);
-
-        int choix = distrib(gen);
-
-        if (choix == 0) { // Tourner
-            if (turn == 0) { 
-                if (directionY > 0) {
-                    directionY = 0;
-                    directionX = -1;
-                }
-                else if (directionX < 0) {
-                    directionY = 1;
-                    directionX = 0;
-                }
-            }
-            else if (turn == 1) {
-                if (directionY > 0) {
-                    directionY = 0;
-                    directionX = 1;
-                }
-                else if (directionX > 0) {
-                    directionY = 1;
-                    directionX = 0;
-                }
-            }
-            else if (turn == 2) {
-                if (directionY < 0) {
-                    directionY = 0;
-                    directionX = -1;
-                }
-                else if (directionX < 0) {
-                    directionY = -1;
-                    directionX = 0;
-                }
-            }
-            else if (turn == 3) {
-                if (directionY < 0) {
-                    directionY = 0;
-                    directionX = 1;
-                }
-                else if (directionX > 0) {
-                    directionY = -1;
-                    directionX = 0;
-                }
-            }
-            else {
-                hasTurn = false;
-            }
-        }
-    }
 };
 
 int main() {
@@ -392,28 +351,35 @@ int main() {
     FeuCirculation feu_SN(Vector2f(620, 680), FeuEtat::Vert);
     FeuCirculation feu_EO(Vector2f(152, 438));
     FeuCirculation feu_OE(Vector2f(705, 420));
-
     FeuCirculation* feu_vehicule[4] = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
-
     vector<FeuCirculation*> feux = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
-
     thread controleThread(&FeuCirculation::controleFeux, std::ref(feux));
-    
-    vector<unique_ptr<Usager>> usagers;
-    usagers.emplace_back(make_unique<Usager>(410, 0, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, 1,false));
-    usagers.emplace_back(make_unique<Usager>(460, 880, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, -1, false));
+    vector<Plaque> plaques;
+    plaques.emplace_back(100, 490, &feu_EO, PlaqueEtat::Ralentisseur, 70, 10, PlaqueDeg::Droite);
+    plaques.emplace_back(150, 490, &feu_EO, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
 
-    usagers.emplace_back(make_unique<Usager>(0, 450, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 1, 0, false));
+    plaques.emplace_back(370, 100, &feu_NS, PlaqueEtat::Ralentisseur, 10, 70, PlaqueDeg::Haut);
+    plaques.emplace_back(370, 150, &feu_NS, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut);
+    
+    plaques.emplace_back((864-100), 370, &feu_EO, PlaqueEtat::Ralentisseur, 70, 10, PlaqueDeg::Gauche);
+    plaques.emplace_back((864-150), 370, &feu_EO, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
+
+    plaques.emplace_back(500, (864-100), &feu_NS, PlaqueEtat::Ralentisseur, 10, 70, PlaqueDeg::Bas);
+    plaques.emplace_back(500, (864-150), &feu_NS, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
+
+
+    vector<unique_ptr<Usager>> usagers;
+    usagers.emplace_back(make_unique<Usager>(370, 0, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, 1, false));
+    usagers.emplace_back(make_unique<Usager>(420, 880, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, -1, false));
+
+    usagers.emplace_back(make_unique<Usager>(0, 490, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 1, 0, false));
     usagers.emplace_back(make_unique<Usager>(880, 414, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", -1, 0, false));
 
-    usagers.emplace_back(make_unique<Usager>(1000, 335, 3, feu_vehicule, 0.7, path_image + "bus_1.png", -1, 0,true));
-    usagers.emplace_back(make_unique<Usager>(-150, 525, 3, feu_vehicule, 0.7, path_image + "bus_1.png", 1, 0,true));
-
+    // Ajout des threads pour déplacer les usagers
     vector<thread> threads;
     for (auto& usager : usagers) {
-        threads.emplace_back(&Usager::deplacer, usager.get());
+        threads.emplace_back(&Usager::deplacer, usager.get(), std::ref(plaques));
     }
-
 
     // Résolution cible pour le contenu
     const int targetWidth = 864;  // Largeur du contenu
@@ -459,7 +425,7 @@ int main() {
     backgroundSprite.setTexture(backgroundImage);
     sf::FloatRect bounds = backgroundSprite.getLocalBounds();
     backgroundSprite.setOrigin(bounds.width / 2, bounds.height / 2);
-    backgroundSprite.setPosition(window.getSize().x/2, window.getSize().y/2);
+    backgroundSprite.setPosition(window.getSize().x / 2, window.getSize().y / 2);
     backgroundSprite.setScale(1, 1);
     // Définir la transparence à 50 %
     sf::Color transparentColor = backgroundSprite.getColor(); // Récupère la couleur actuelle
@@ -507,6 +473,12 @@ int main() {
         for (auto& usager : usagers) {
             window.draw(usager->getSprite());
         }
+
+        // Dessiner les plaques
+        for (const auto& plaque : plaques) {
+            plaque.dessiner(window);
+        }
+
         // Récupération des coordonnées de la souris
         Vector2i mousePos = Mouse::getPosition(window);
         text.setString("X: " + to_string(mousePos.x) + "\nY: " + to_string(mousePos.y));

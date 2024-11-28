@@ -23,4 +23,6 @@ link_libraries(sfml-graphics sfml-window)
 
 add_executable (traffic_light_test "traffic_light_test.cpp")
 add_executable (traffic_light_test_2 "traffic_light_test_2.cpp")
+add_executable (traffic_light_test_2_1 "traffic_light_test_2_2.cpp")
+add_executable (traffic_light_test_3 "traffic_light_test_3.cpp")
 add_executable (traffic_light2 "traffic_light.cpp")

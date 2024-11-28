@@ -116,8 +116,8 @@ public:
         }
         sprite.setTexture(texture);
         sf::FloatRect bounds = sprite.getLocalBounds();
-        //sprite.setOrigin(bounds.width / 2, bounds.height / 2);
-        
+        sprite.setOrigin(bounds.width / 2, bounds.height / 2);
+
         sprite.setPosition(pos_x, pos_y);
         resetPosition();
         sprite.setScale(size, size); // Changez les valeurs pour ajuster la taille
@@ -186,26 +186,26 @@ public:
             }
             else if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange && myLight != feu->obtenirEtat()) &&
                 ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x - 50) ||
-                    (directionX < 0 && pos.x <= limiteArret.x  + 50))) ||
+                    (directionX < 0 && pos.x <= limiteArret.x + 50))) ||
                     (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y - 50) ||
-                        (directionY < 0 && pos.y <= limiteArret.y +60))))) {
+                        (directionY < 0 && pos.y <= limiteArret.y + 60))))) {
                 feuDepasse = true;
                 myLight = feu->obtenirEtat();
             }
             else if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange) &&
-                 ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x - 60) ||
+                ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x - 60) ||
                     (directionX < 0 && pos.x <= limiteArret.x + 90))) ||
                     (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y - 100) ||
                         (directionY < 0 && pos.y <= limiteArret.y + 100))))) {
-                 if (coeffV <= 0.7) {
+                if (coeffV <= 0.7) {
                     coeffV = coeffV * 0.99;
-                 }
-                 else {
+                }
+                else {
                     coeffV = 0.5;
-                 }
+                }
 
-                 myLight = feu->obtenirEtat();
-                 if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange) &&
+                myLight = feu->obtenirEtat();
+                if (!feuDepasse && (feu->obtenirEtat() == FeuEtat::Orange) &&
                     ((directionX != 0 && ((directionX > 0 && pos.x + 50 >= limiteArret.x) ||
                         (directionX < 0 && pos.x <= limiteArret.x + 70))) ||
                         (directionY != 0 && ((directionY > 0 && pos.y + 30 >= limiteArret.y) ||
@@ -213,7 +213,7 @@ public:
                     std::this_thread::sleep_for(std::chrono::milliseconds(10));
                     coeffV = 0.0;
                     continue;
-                 }
+                }
 
             }
             else {
@@ -260,7 +260,7 @@ public:
         else if (directionX < 0) { sprite.setRotation(180); }
         else if (directionY > 0) { sprite.setRotation(90); }
         else if (directionY < 0) { sprite.setRotation(270); }
-        
+
         orienterSpriteFeu(feuVehicules); // Réorienter après réinitialisation
         hasTurn = false;
 
@@ -340,7 +340,7 @@ private:
         int choix = distrib(gen);
 
         if (choix == 0) { // Tourner
-            if (turn == 0) { 
+            if (turn == 0) {
                 if (directionY > 0) {
                     directionY = 0;
                     directionX = -1;
@@ -395,19 +395,20 @@ int main() {
 
     FeuCirculation* feu_vehicule[4] = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
 
+
     vector<FeuCirculation*> feux = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
 
     thread controleThread(&FeuCirculation::controleFeux, std::ref(feux));
-    
+
     vector<unique_ptr<Usager>> usagers;
-    usagers.emplace_back(make_unique<Usager>(410, 0, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, 1,false));
+    usagers.emplace_back(make_unique<Usager>(410, 0, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, 1, false));
     usagers.emplace_back(make_unique<Usager>(460, 880, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 0, -1, false));
 
     usagers.emplace_back(make_unique<Usager>(0, 450, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", 1, 0, false));
     usagers.emplace_back(make_unique<Usager>(880, 414, 4, feu_vehicule, 0.8, path_image + "voiture_1.png", -1, 0, false));
 
-    usagers.emplace_back(make_unique<Usager>(1000, 335, 3, feu_vehicule, 0.7, path_image + "bus_1.png", -1, 0,true));
-    usagers.emplace_back(make_unique<Usager>(-150, 525, 3, feu_vehicule, 0.7, path_image + "bus_1.png", 1, 0,true));
+    usagers.emplace_back(make_unique<Usager>(1000, 335, 3, feu_vehicule, 0.7, path_image + "bus_1.png", -1, 0, true));
+    usagers.emplace_back(make_unique<Usager>(-150, 525, 3, feu_vehicule, 0.7, path_image + "bus_1.png", 1, 0, true));
 
     vector<thread> threads;
     for (auto& usager : usagers) {
@@ -416,8 +417,8 @@ int main() {
 
 
     // Résolution cible pour le contenu
-    const int targetWidth = 864;  // Largeur du contenu
-    const int targetHeight = 864; // Hauteur du contenu
+    const int targetWidth = 1920;  // Largeur du contenu
+    const int targetHeight = 972; // Hauteur du contenu
     float targetAspectRatio = static_cast<float>(targetWidth) / targetHeight;
 
     // Création de la fenêtre
@@ -452,15 +453,15 @@ int main() {
 
     Texture backgroundImage;
     Sprite backgroundSprite;
-    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
+    if (!backgroundImage.loadFromFile(path_image + "large_map_little.png")) {
         cerr << "Erreur pendant le chargement des images" << endl;
         return EXIT_FAILURE;
     }
     backgroundSprite.setTexture(backgroundImage);
     sf::FloatRect bounds = backgroundSprite.getLocalBounds();
     backgroundSprite.setOrigin(bounds.width / 2, bounds.height / 2);
-    backgroundSprite.setPosition(window.getSize().x/2, window.getSize().y/2);
-    backgroundSprite.setScale(1, 1);
+    backgroundSprite.setPosition(window.getSize().x / 2, window.getSize().y / 2);
+    backgroundSprite.setScale(1,1);
     // Définir la transparence à 50 %
     sf::Color transparentColor = backgroundSprite.getColor(); // Récupère la couleur actuelle
     transparentColor.a = 255; // 128 correspond à 50 % de transparence (255/2)
