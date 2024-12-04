@@ -10,6 +10,7 @@
 #include <cmath>
 #include <random>
 #include <string>
+#include <chrono>
 
 using namespace std;
 using namespace sf;
@@ -20,15 +21,73 @@ int main() {
 
     std::srand(std::time(0));
 
-    FeuCirculation feu_NS(Vector2f(240, 170), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_SN(Vector2f(620, 680), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_EO(Vector2f(152, 438), 0.5);
-    FeuCirculation feu_OE(Vector2f(705, 420), 0.5);
-    FeuCirculation* feu_vehicule[4] = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
-    vector<FeuCirculation*> feux = { &feu_NS, &feu_SN, &feu_EO, &feu_OE };
+    FeuCirculation feu_1(Vector2f(245, 315), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_2(Vector2f(470, 310), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_3(Vector2f(435, 475), 0.5);
+    FeuCirculation feu_4(Vector2f(690, 315), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_5(Vector2f(955, 310), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_6(Vector2f(920, 475), 0.5);
+    FeuCirculation feu_7(Vector2f(730, 170), 0.5);
+    FeuCirculation feu_8(Vector2f(730, 805), 0.5);
+    FeuCirculation feu_9(Vector2f(915, 970), 0.5);
+    FeuCirculation feu_10(Vector2f(970, 840), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_11(Vector2f(1390, 935), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_12(Vector2f(1700, 840), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_13(Vector2f(1390, 315), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_14(Vector2f(1680, 310), 0.5, FeuEtat::Vert);
+    FeuCirculation feu_15(Vector2f(1640, 475), 0.5);
+    FeuCirculation* feu_vehicule[15] = { &feu_1, &feu_2, &feu_3, &feu_4, &feu_5, &feu_6, &feu_7, &feu_8, &feu_9, &feu_10, &feu_11, &feu_12, &feu_13, &feu_14, &feu_15};
+    vector<FeuCirculation*> feux = { &feu_1, &feu_2, &feu_3, &feu_4, &feu_5, &feu_6, &feu_7, &feu_8, &feu_9, &feu_10, &feu_11, &feu_12, &feu_13, &feu_14, &feu_15 };
     thread controleThread(&FeuCirculation::controleFeux, std::ref(feux));
     vector<Plaque> plaques;
     vector<PlaqueOrientation> plaquesOrientation;
+
+    plaques.emplace_back(205, 340, &feu_1, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
+    plaques.emplace_back(245, 340, &feu_1, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
+
+    plaques.emplace_back(510, 285, &feu_2, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
+    plaques.emplace_back(470, 285, &feu_2, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
+
+    plaques.emplace_back(360, 515, &feu_3, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
+    plaques.emplace_back(360, 475, &feu_3, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
+
+    plaques.emplace_back(650, 340, &feu_4, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
+    plaques.emplace_back(690, 340, &feu_4, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
+
+    plaques.emplace_back(995, 285, &feu_5, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
+    plaques.emplace_back(955, 285, &feu_5, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
+
+    plaques.emplace_back(860, 515, &feu_6, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
+    plaques.emplace_back(860, 475, &feu_6, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
+
+    plaques.emplace_back(795, 130, &feu_7, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Haut);
+    plaques.emplace_back(795, 170, &feu_7, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut);
+
+    plaques.emplace_back(795, 765, &feu_8, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Haut);
+    plaques.emplace_back(795, 805, &feu_8, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut);
+
+    plaques.emplace_back(860, 1010, &feu_9, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
+    plaques.emplace_back(860, 970, &feu_9, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
+
+    plaques.emplace_back(1010, 870, &feu_10, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
+    plaques.emplace_back(970, 870, &feu_10, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
+
+    plaques.emplace_back(1350, 910, &feu_11, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
+    plaques.emplace_back(1390, 910, &feu_11, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
+
+    plaques.emplace_back(1740, 870, &feu_12, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
+    plaques.emplace_back(1700, 870, &feu_12, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
+
+    plaques.emplace_back(1350, 340, &feu_13, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
+    plaques.emplace_back(1390, 340, &feu_13, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
+
+    plaques.emplace_back(1720, 285, &feu_14, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
+    plaques.emplace_back(1680, 285, &feu_14, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
+
+    plaques.emplace_back(1575, 515, &feu_15, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
+    plaques.emplace_back(1575, 475, &feu_15, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
+
+    
 
     /*
     plaques.emplace_back(100, 490, &feu_EO, PlaqueEtat::Ralentisseur, 70, 10, PlaqueDeg::Droite);
@@ -62,7 +121,7 @@ int main() {
 
 
     vector<unique_ptr<Usager>> usagers;
-    usagers.emplace_back(make_unique<Usager>(-150, 340, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
+    usagers.emplace_back(make_unique<Usager>(501, 133, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
     //usagers.emplace_back(make_unique<Usager>(420, 880, 4, feu_vehicule, 0.5, path_image + "voiture_1.png", 0, -1, false));
 
     //usagers.emplace_back(make_unique<Usager>(0, 490, 4, feu_vehicule, 0.5, path_image + "voiture_1.png", 1, 0, false));
@@ -131,6 +190,15 @@ int main() {
     transparentColor.a = 255; // 128 correspond à 50 % de transparence (255/2)
     backgroundSprite.setColor(transparentColor);
 
+
+    // Création de 
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distrib(2000, 4000); // Intervalle entre 2000ms et 4000ms
+    sf::Clock creationClock; // Horloge pour mesurer le temps écoulé
+    int nextCreationTime = distrib(gen); // Temps jusqu'à la prochaine création de voiture
+    int entityNum = 0;
+
     while (window.isOpen()) {
         Event event;
         while (window.pollEvent(event)) {
@@ -160,6 +228,23 @@ int main() {
                 // Mettre à jour la vue de la fenêtre
                 window.setView(view);
             }
+        }
+
+        // Vérifier si le délai est écoulé
+        if (creationClock.getElapsedTime().asMilliseconds() >= nextCreationTime && entityNum < 20) {
+            // Créer une nouvelle voiture
+            int xPosition = distrib(gen) % 1920; // Exemple de position aléatoire en x
+            int yPosition = distrib(gen) % 972; // Exemple de position aléatoire en y
+            usagers.emplace_back(make_unique<Usager>(xPosition, yPosition, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
+            usagersPtrs.push_back(usagers.back().get());
+
+            // Ajouter un thread pour la nouvelle voiture
+            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs));
+
+            // Réinitialiser l'horloge et recalculer le délai
+            creationClock.restart();
+            nextCreationTime = distrib(gen);
+            entityNum++;
         }
 
         window.clear(Color::Black);

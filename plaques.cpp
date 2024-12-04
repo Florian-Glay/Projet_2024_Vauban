@@ -15,7 +15,7 @@ public:
     Plaque(float x, float y, FeuCirculation* feu, PlaqueEtat p_etat, float tailleX, float tailleY, PlaqueDeg orientation)
         : feuAssocie(feu), myEtat(p_etat) {
         plaque.setSize(Vector2f(tailleX, tailleY));
-        plaque.setFillColor(Color(200, 200, 200, 0));
+        plaque.setFillColor(Color(200, 200, 200, 100));
         plaque.setPosition(x, y);
         if (orientation == PlaqueDeg::Droite) {
             plaque.setOrigin(plaque.getGlobalBounds().width, plaque.getGlobalBounds().height / 2);

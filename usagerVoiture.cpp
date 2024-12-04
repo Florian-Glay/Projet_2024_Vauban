@@ -1,5 +1,22 @@
 #include "plaques.cpp"
 
+// Structure pour représenter une position et une direction
+struct PositionDirection {
+    Vector2f position;
+    int directionX;
+    int directionY;
+};
+
+// Liste des positions possibles
+const std::vector<PositionDirection> positions = {
+    {{-100, 340}, 1, 0},   // Droite
+    {{360, 1200}, 0, -1},  // Haut
+    {{860, 1500}, 0, -1},  // Haut
+    {{2000, 870}, -1, 0},  // Gauche
+    {{795, -160}, 0, 1},   // Bas
+    {{2000, 285}, -1, 0}   // Gauche
+};
+
 class Usager {
 protected:
     bool hasTurn = false;
@@ -33,7 +50,7 @@ public:
         // Initialiser le rectangle (hitbox)
         hitbox.setSize(Vector2f(100.f, 50.f)); // Dimensions 100x50
         hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
-        hitbox.setOrigin((hitbox.getSize().x / 2.f) - 90, hitbox.getSize().y / 2.f);
+        hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
         hitbox.setPosition(pos_x, pos_y);
         hitbox.setScale(size, size);
     }
@@ -139,31 +156,31 @@ public:
 
             orienterSprite();
 
-            if (plaque_touch == 1) {
-                coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01)); // Accélération progressive
-            }
-            else if (plaque_touch == 2) {
-                coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
-            }
-            else if (plaque_touch == 3) {
-                if (dist >= 0.0) {
-                    if (coeffV < dist) {
-                        dist = dist * 0.9;
-                    }
-                    else {
-                        coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
-                    }
-
-                }
-            }
-
             // Détection de collision avec d'autres voitures
             if (verifierCollision(voitures)) {
                 //std::cout << "Collision détectée ! Arrêt de la voiture." << std::endl;
-                coeffV = coeffV * 0.9; // Arrêter la voiture
-                sprite.move(vitesse* directionX* coeffV, vitesse* directionY* coeffV);
+                coeffV = coeffV * 0.85; // Arrêter la voiture
+                sprite.move(vitesse * directionX * coeffV, vitesse * directionY * coeffV);
             }
             else {
+                if (plaque_touch == 1) {
+                    coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01)); // Accélération progressive
+                }
+                else if (plaque_touch == 2) {
+                    coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
+                }
+                else if (plaque_touch == 3) {
+                    if (dist >= 0.0) {
+                        if (coeffV < dist) {
+                            dist = dist * 0.9;
+                        }
+                        else {
+                            coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
+                        }
+
+                    }
+                }
+
                 // Déplacement normal
                 if (dist >= 0.0) {
                     sprite.move(vitesse * directionX * 0.01 * dist, vitesse * directionY * 0.01 * dist);
@@ -171,12 +188,12 @@ public:
                 else {
                     sprite.move(vitesse * directionX * coeffV, vitesse * directionY * coeffV);
                 }
+            }
 
 
-                // Si le véhicule dépasse les limites de la fenêtre, il revient au point de départ
-                if (pos.x < -200 || pos.x > 2100 || pos.y < -200 || pos.y > 1200) {
-                    resetPosition();
-                }
+            // Si le véhicule dépasse les limites de la fenêtre, il revient au point de départ
+            if (pos.x < -200 || pos.x > 2100 || pos.y < -200 || pos.y > 1200) {
+                resetPosition();
             }
 
 
@@ -189,22 +206,17 @@ public:
     Sprite& getSprite() { return sprite; }
 
     virtual void resetPosition() {
-        if (isBus) {
-            if (directionX > 0)
-                sprite.setPosition(-150, 340);
-            else if (directionX < 0)
-                sprite.setPosition(1000, 335);
-        }
-        else {
-            if (directionX > 0)
-                sprite.setPosition(-150, 340);
-            else if (directionX < 0)
-                sprite.setPosition(990, 370);
-            else if (directionY > 0)
-                sprite.setPosition(370, -150);
-            else if (directionY < 0)
-                sprite.setPosition(500, 990);
-        }
+        // Générer un index aléatoire
+        std::srand((sprite.getPosition().x + sprite.getPosition().y ) * std::time(0));
+        int index = std::rand() % (positions.size() - 1);
+
+        // Sélectionner une position et une direction aléatoires
+        const auto& chosen = positions[index];
+
+        // Appliquer la position et la direction
+        sprite.setPosition(chosen.position);
+        directionX = chosen.directionX;
+        directionY = chosen.directionY;
 
         if (directionX > 0) { sprite.setRotation(0); }
         else if (directionX < 0) { sprite.setRotation(180); }
@@ -213,7 +225,6 @@ public:
 
         orienterSpriteFeu(feuVehicules); // Réorienter après réinitialisation
         hasTurn = false;
-
     }
 
     void dessiner(RenderWindow& window) const {

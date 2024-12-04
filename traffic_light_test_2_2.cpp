@@ -78,8 +78,8 @@ int main() {
     }
 
     // Résolution cible pour le contenu
-    const int targetWidth = 1920;  // Largeur du contenu
-    const int targetHeight = 972; // Hauteur du contenu
+    const int targetWidth = 864;  // Largeur du contenu
+    const int targetHeight = 864; // Hauteur du contenu
     float targetAspectRatio = static_cast<float>(targetWidth) / targetHeight;
 
     // Création de la fenêtre
@@ -114,7 +114,7 @@ int main() {
 
     Texture backgroundImage;
     Sprite backgroundSprite;
-    if (!backgroundImage.loadFromFile(path_image + "large_map_little.png")) {
+    if (!backgroundImage.loadFromFile(path_image + "map.png")) {
         cerr << "Erreur pendant le chargement des images" << endl;
         return EXIT_FAILURE;
     }
