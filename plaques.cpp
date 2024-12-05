@@ -10,7 +10,7 @@ private:
     RectangleShape plaque;
     FeuCirculation* feuAssocie; // Feu associé à cette plaque
     PlaqueEtat myEtat;
-
+    
 public:
     Plaque(float x, float y, FeuCirculation* feu, PlaqueEtat p_etat, float tailleX, float tailleY, PlaqueDeg orientation)
         : feuAssocie(feu), myEtat(p_etat) {
@@ -50,6 +50,8 @@ public:
     FloatRect getGlobalBounds() const {
         return plaque.getGlobalBounds();
     }
+
+    
 };
 
 class PlaqueOrientation {
@@ -57,11 +59,12 @@ private:
     sf::RectangleShape plaque;
     Orientation valeur;
     bool voitureTouchePlaque = false; // Pour éviter de tourner plusieurs fois tant que la voiture est sur la plaque
-
+    int directionX, directionY;
+    bool mustTurn;
 public:
     // Constructeur
-    PlaqueOrientation(float x, float y, float tailleX, float tailleY, Orientation orientation)
-        : valeur(orientation) {
+    PlaqueOrientation(float x, float y, float tailleX, float tailleY, Orientation orientation, int dirX, int dirY, bool mustTurn_ = false)
+        : valeur(orientation), directionX(dirX), directionY(dirY), mustTurn(mustTurn_){
         plaque.setSize(sf::Vector2f(tailleX, tailleY));
         plaque.setFillColor(sf::Color(150, 150, 200, 150)); // Couleur distinctive
         plaque.setPosition(x, y);
@@ -77,6 +80,18 @@ public:
 
     Orientation getValeur() const {
         return valeur;
+    }
+
+    int getDirX() const {
+        return directionX;
+    }
+
+    int getDirY() const {
+        return directionY;
+    }
+
+    int getMustTurn() const {
+        return mustTurn;
     }
 
 };

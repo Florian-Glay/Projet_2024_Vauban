@@ -90,19 +90,7 @@ int main() {
     
 
     /*
-    plaques.emplace_back(100, 490, &feu_EO, PlaqueEtat::Ralentisseur, 70, 10, PlaqueDeg::Droite);
-    plaques.emplace_back(150, 490, &feu_EO, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
-
-    plaques.emplace_back(370, 100, &feu_NS, PlaqueEtat::Ralentisseur, 10, 70, PlaqueDeg::Haut);
-    plaques.emplace_back(370, 150, &feu_NS, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut);
-
-    plaques.emplace_back((864 - 100), 370, &feu_EO, PlaqueEtat::Ralentisseur, 70, 10, PlaqueDeg::Gauche);
-    plaques.emplace_back((864 - 150), 370, &feu_EO, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
-
-    plaques.emplace_back(500, (864 - 100), &feu_NS, PlaqueEtat::Ralentisseur, 10, 70, PlaqueDeg::Bas);
-    plaques.emplace_back(500, (864 - 150), &feu_NS, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
-
-    
+        
     plaquesOrientation.emplace_back(PlaqueOrientation(370, 100, 5, 5, Orientation::Droite));
     plaquesOrientation.emplace_back(PlaqueOrientation(375, 415, 5, 5, Orientation::Turn));
 
@@ -118,6 +106,9 @@ int main() {
     plaquesOrientation.emplace_back(PlaqueOrientation(500, 764, 5, 5, Orientation::Droite));*/
 
 
+    plaquesOrientation.emplace_back(PlaqueOrientation(360, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true));
+    plaquesOrientation.emplace_back(PlaqueOrientation(360, 315, 5, 5, Orientation::Turn, 1, 0));
+    plaquesOrientation.emplace_back(PlaqueOrientation(360, 260, 5, 5, Orientation::Turn, -1, 0));
 
 
     vector<unique_ptr<Usager>> usagers;

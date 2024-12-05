@@ -111,32 +111,74 @@ public:
             for (auto& plaqueOrientation : plaquesOrientation) {
                 if (plaqueOrientation.getGlobalBounds().intersects(sprite.getGlobalBounds())) {
                     Orientation val = plaqueOrientation.getValeur();
-                    if (!hasTurn && !touchTurn  && val != Orientation::Turn) { // Empêche de tourner plusieurs fois sur la même plaque
-                        touchTurn = true;
-                        std::srand(pos.x + pos.y);
-                        int choix = std::rand() % 100;
-                        
+                    if (!hasTurn && !touchTurn && val != Orientation::Turn) { // Empêche de tourner plusieurs fois sur la même plaque
+                        if (plaqueOrientation.getMustTurn()) {
+                            if (val == Orientation::GaucheDroite) {
+                                touchTurn = true;
+                                std::srand((pos.x + pos.y) * std::time(0));
+                                int choix = std::rand() % 6;
+                                hasTurn = true;
+                                if (choix >= 3) {
+                                    if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                    else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                }
+                                else {
+                                    if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                    else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                }
+                            }
+                            else {
+                                touchTurn = true;
+                                std::srand(pos.x + pos.y);
+                                int choix = std::rand() % 100;
+                                if (choix == 1) {
+                                    hasTurn = true;
+                                    if (val == Orientation::Gauche) {
+                                        if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                        else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                        else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                        else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    }
 
-                        if (choix == 1) {
-                            hasTurn = true;
-                            if (val == Orientation::Gauche) {
-                                if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
-                                else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
-                                else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
-                                else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    if (val == Orientation::Droite) {
+                                        if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                        else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                        else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                        else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                    }
+                                }
                             }
 
-                            if (val == Orientation::Droite) {
-                                if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
-                                else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
-                                else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
-                                else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
-                            }
                         }
                         else {
-                            hasTurn = false;
-                            nextDirectionX = directionX;
-                            nextDirectionY = directionY;
+                            touchTurn = true;
+                            std::srand(pos.x + pos.y);
+                            int choix = std::rand() % 100;
+                            if (choix == 1) {
+                                hasTurn = true;
+                                if (val == Orientation::Gauche) {
+                                    if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                    else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                }
+
+                                if (val == Orientation::Droite) {
+                                    if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                    else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                }
+                            }
+                            else {
+                                hasTurn = false;
+                                nextDirectionX = directionX;
+                                nextDirectionY = directionY;
+                            }
                         }
                     }
                 }
@@ -145,7 +187,7 @@ public:
             if (hasTurn) {
                 for (auto& plaqueOrientation : plaquesOrientation) {
                     Orientation val = plaqueOrientation.getValeur();
-                    if (val == Orientation::Turn && plaqueOrientation.getGlobalBounds().intersects(sprite.getGlobalBounds())) {
+                    if (val == Orientation::Turn && plaqueOrientation.getGlobalBounds().intersects(sprite.getGlobalBounds()) && plaqueOrientation.getDirX() == nextDirectionX && plaqueOrientation.getDirY() == nextDirectionY) {
                         directionY = nextDirectionY;
                         directionX = nextDirectionX;
                         hasTurn = false;
@@ -207,7 +249,7 @@ public:
 
     virtual void resetPosition() {
         // Générer un index aléatoire
-        std::srand((sprite.getPosition().x + sprite.getPosition().y ) * std::time(0));
+        std::srand((sprite.getPosition().x + sprite.getPosition().y) * std::time(0));
         int index = std::rand() % (positions.size() - 1);
 
         // Sélectionner une position et une direction aléatoires
