@@ -11,7 +11,7 @@ struct PositionDirection {
 const std::vector<PositionDirection> positions = {
     {{-100, 340}, 1, 0},   // Droite
     {{360, 1200}, 0, -1},  // Haut
-    {{860, 1500}, 0, -1},  // Haut
+    {{860, 1200}, 0, -1},  // Haut
     {{2000, 870}, -1, 0},  // Gauche
     {{795, -160}, 0, 1},   // Bas
     {{2000, 285}, -1, 0}   // Gauche
@@ -28,7 +28,6 @@ protected:
     Vector2f limiteArret;
     bool isBus;
     bool collisionDetectee = false;
-    int croisements[4][2] = { {410, 414}, {410, 450}, {460, 414}, {460, 450} };
     FeuCirculation** feuVehicules; // Tableau de pointeurs vers les feux
     FeuCirculation* feu;
     RectangleShape hitbox; // Rectangle suivant la voiture
@@ -48,24 +47,40 @@ public:
         sprite.setScale(size, size);
 
         // Initialiser le rectangle (hitbox)
-        hitbox.setSize(Vector2f(100.f, 50.f)); // Dimensions 100x50
+        hitbox.setSize(Vector2f(100.f, 90.f)); // Dimensions 100x50
         hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
         hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
         hitbox.setPosition(pos_x, pos_y);
         hitbox.setScale(size, size);
     }
 
-    virtual void deplacer(vector<Plaque>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures) {
+    virtual void deplacer(vector<Plaque>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed) {
         float coeffV = 1.0; // Coefficient de vitesse
         int plaque_touch = 1;
         hasTurn = false;
         bool touchTurn = false;
+        sf::Clock lowSpeedClock; // Horloge pour mesurer le temps à faible vitesse
+
         while (true) {
             Vector2f pos = sprite.getPosition();
             int count = 0;
             bool stop_P = false;
             bool touching = false;
             float dist = -1.0;
+
+            // Si coeffV est inférieur à 0.3, démarrer ou continuer à mesurer le temps
+            if (coeffV < 0.3) {
+                if (lowSpeedClock.getElapsedTime().asSeconds() >= 30.0 * timeSpeed) {
+                    resetPosition(); // Réinitialiser la position si 10 secondes sont écoulées
+                    lowSpeedClock.restart(); // Réinitialiser l'horloge
+                    coeffV = 1.0; // Remettre la vitesse à 1
+                    continue; // Passer à l'itération suivante
+                }
+            }
+            else {
+                lowSpeedClock.restart(); // Réinitialiser l'horloge si coeffV >= 0.3
+            }
+
             // Détection de collision avec les plaques
             for (auto& plaque : plaques) {
                 if (plaque.getGlobalBounds().intersects(sprite.getGlobalBounds())) {
@@ -90,6 +105,9 @@ public:
                             float dx = plaqueBounds.x - pos.x;
                             float dy = plaqueBounds.y - pos.y;
                             dist = sqrt(dx * dx + dy * dy) - 25;
+                            if (dist < 0) {
+                                plaque_touch = 1;
+                            }
                             // Ralentissement progressive
                            //std::cout << coeffV << std::endl;
                         }
@@ -201,47 +219,53 @@ public:
             // Détection de collision avec d'autres voitures
             if (verifierCollision(voitures)) {
                 //std::cout << "Collision détectée ! Arrêt de la voiture." << std::endl;
-                coeffV = coeffV * 0.85; // Arrêter la voiture
-                sprite.move(vitesse * directionX * coeffV, vitesse * directionY * coeffV);
+                coeffV = coeffV * 0.85 * timeSpeed; // Arrêter la voiture
+                sprite.move((vitesse * directionX * coeffV * timeSpeed), (vitesse * directionY * coeffV * timeSpeed));
             }
             else {
                 if (plaque_touch == 1) {
-                    coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01)); // Accélération progressive
+                    coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
                 }
                 else if (plaque_touch == 2) {
-                    coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
+                    coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
                 }
                 else if (plaque_touch == 3) {
                     if (dist >= 0.0) {
                         if (coeffV < dist) {
-                            dist = dist * 0.9;
+                            dist = dist * 0.9 * timeSpeed;
                         }
                         else {
-                            coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99)));
+                            coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
                         }
 
                     }
                 }
 
+                // Reset si bloqué en dehors de la map
+                if ((pos.x <= -90 || pos.x >= 1990 || pos.y <= -150 || pos.y >= 1190) && coeffV < 0.3) {
+                    resetPosition();
+                }
+
                 // Déplacement normal
                 if (dist >= 0.0) {
-                    sprite.move(vitesse * directionX * 0.01 * dist, vitesse * directionY * 0.01 * dist);
+                    sprite.move(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed)), vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed)));
                 }
                 else {
-                    sprite.move(vitesse * directionX * coeffV, vitesse * directionY * coeffV);
+                    sprite.move(vitesse * directionX * coeffV* int(round(1.0 / timeSpeed)), vitesse * directionY * coeffV * int(round(1.0 / timeSpeed)));
                 }
             }
 
 
             // Si le véhicule dépasse les limites de la fenêtre, il revient au point de départ
-            if (pos.x < -200 || pos.x > 2100 || pos.y < -200 || pos.y > 1200) {
+            if (pos.x < -300 || pos.x > 2200 || pos.y < -300 || pos.y > 1400) {
                 resetPosition();
             }
 
 
             mettreAJourHitbox();
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10* timeSpeed))));
+            int a = round(3.5);
         }
     }
 
@@ -250,7 +274,7 @@ public:
     virtual void resetPosition() {
         // Générer un index aléatoire
         std::srand((sprite.getPosition().x + sprite.getPosition().y) * std::time(0));
-        int index = std::rand() % (positions.size() - 1);
+        int index = std::rand() % (positions.size());
 
         // Sélectionner une position et une direction aléatoires
         const auto& chosen = positions[index];

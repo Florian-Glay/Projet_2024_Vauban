@@ -53,7 +53,7 @@ public:
 
         // Initialiser le sprite
         spriteFeu.setTexture(textureRouge); // Par défaut, rouge
-        spriteFeu.setOrigin(textureRouge.getSize().x / 2, textureRouge.getSize().y);
+        spriteFeu.setOrigin(textureRouge.getSize().x / 2.0, textureRouge.getSize().y);
         spriteFeu.setPosition(pos);
         spriteFeu.setScale(size, size);
         changerTexture();
@@ -84,15 +84,15 @@ public:
         return etat;
     }
 
-    static void controleFeux(vector<FeuCirculation*>& feux) {
+    static void controleFeux(vector<FeuCirculation*>& feux, float& timeSpeed) {
         while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(10));
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10000.0 * timeSpeed))));
             for (auto feu : feux) {
                 if (feu->obtenirEtat() == FeuEtat::Vert) {
                     feu->changerEtat();
                 }
             }
-            std::this_thread::sleep_for(std::chrono::seconds(3));
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(round(3000.0 * timeSpeed))));
             for (auto feu : feux) {
                 if (feu->obtenirEtat() == FeuEtat::Orange) {
                     feu->changerEtat();
@@ -101,7 +101,7 @@ public:
                     feu->waiting_time = true;
                 }
             }
-            std::this_thread::sleep_for(std::chrono::seconds(1));
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(round(1000.0 * timeSpeed))));
             for (auto feu : feux) {
                 if (feu->waiting_time) {
                     feu->changerEtat();

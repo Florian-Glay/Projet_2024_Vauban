@@ -11,15 +11,22 @@
 #include <random>
 #include <string>
 #include <chrono>
+#include <sstream> // Inclure pour utiliser std::ostringstream
+
 
 using namespace std;
 using namespace sf;
 
 #include "usagerVoiture.cpp"
+#include "potentiometre.cpp"
 
 int main() {
 
     std::srand(std::time(0));
+
+    float timeSpeed = 1.0f;
+    // Créer un potentiomètre
+    Potentiometer potentiometer(30, 870, 200, 10, 0.1f, 1.0f, &timeSpeed);
 
     FeuCirculation feu_1(Vector2f(245, 315), 0.5, FeuEtat::Vert);
     FeuCirculation feu_2(Vector2f(470, 310), 0.5, FeuEtat::Vert);
@@ -38,7 +45,7 @@ int main() {
     FeuCirculation feu_15(Vector2f(1640, 475), 0.5);
     FeuCirculation* feu_vehicule[15] = { &feu_1, &feu_2, &feu_3, &feu_4, &feu_5, &feu_6, &feu_7, &feu_8, &feu_9, &feu_10, &feu_11, &feu_12, &feu_13, &feu_14, &feu_15};
     vector<FeuCirculation*> feux = { &feu_1, &feu_2, &feu_3, &feu_4, &feu_5, &feu_6, &feu_7, &feu_8, &feu_9, &feu_10, &feu_11, &feu_12, &feu_13, &feu_14, &feu_15 };
-    thread controleThread(&FeuCirculation::controleFeux, std::ref(feux));
+    thread controleThread(&FeuCirculation::controleFeux, std::ref(feux), std::ref(timeSpeed));
     vector<Plaque> plaques;
     vector<PlaqueOrientation> plaquesOrientation;
 
@@ -110,6 +117,11 @@ int main() {
     plaquesOrientation.emplace_back(PlaqueOrientation(360, 315, 5, 5, Orientation::Turn, 1, 0));
     plaquesOrientation.emplace_back(PlaqueOrientation(360, 260, 5, 5, Orientation::Turn, -1, 0));
 
+    plaquesOrientation.emplace_back(PlaqueOrientation(970, 870, 5, 5, Orientation::GaucheDroite, -1, 0, true));
+    plaquesOrientation.emplace_back(PlaqueOrientation(830, 870, 5, 5, Orientation::Turn, 0, -1));
+    plaquesOrientation.emplace_back(PlaqueOrientation(775, 870, 5, 5, Orientation::Turn, 0, 1));
+
+
 
     vector<unique_ptr<Usager>> usagers;
     usagers.emplace_back(make_unique<Usager>(501, 133, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
@@ -127,7 +139,7 @@ int main() {
     // Ajout des threads pour déplacer les usagers
     vector<thread> threads;
     for (auto& usager : usagers) {
-        threads.emplace_back(&Usager::deplacer, usager.get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs));
+        threads.emplace_back(&Usager::deplacer, usager.get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed));
     }
 
     // Résolution cible pour le contenu
@@ -174,7 +186,7 @@ int main() {
     backgroundSprite.setTexture(backgroundImage);
     sf::FloatRect bounds = backgroundSprite.getLocalBounds();
     backgroundSprite.setOrigin(bounds.width / 2, bounds.height / 2);
-    backgroundSprite.setPosition(window.getSize().x / 2, window.getSize().y / 2);
+    backgroundSprite.setPosition(window.getSize().x / 2.0, window.getSize().y / 2.0);
     backgroundSprite.setScale(1, 1);
     // Définir la transparence à 50 %
     sf::Color transparentColor = backgroundSprite.getColor(); // Récupère la couleur actuelle
@@ -219,9 +231,12 @@ int main() {
                 // Mettre à jour la vue de la fenêtre
                 window.setView(view);
             }
+
+            // Gérer les événements du potentiomètre
+            potentiometer.handleEvent(event, window);
         }
 
-        // Vérifier si le délai est écoulé
+        // Vérifier si le délai est écoulé pour créer une nouvelle voiture
         if (creationClock.getElapsedTime().asMilliseconds() >= nextCreationTime && entityNum < 20) {
             // Créer une nouvelle voiture
             int xPosition = distrib(gen) % 1920; // Exemple de position aléatoire en x
@@ -230,13 +245,16 @@ int main() {
             usagersPtrs.push_back(usagers.back().get());
 
             // Ajouter un thread pour la nouvelle voiture
-            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs));
+            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed));
 
             // Réinitialiser l'horloge et recalculer le délai
             creationClock.restart();
             nextCreationTime = distrib(gen);
             entityNum++;
         }
+
+        // Mettre à jour le potentiomètre
+        potentiometer.update(window);
 
         window.clear(Color::Black);
         window.draw(backgroundSprite);
@@ -267,6 +285,23 @@ int main() {
         // Affichage
         window.draw(box);  // Dessiner la boîte
         window.draw(text); // Dessiner le texte
+
+        // Dessiner le potentiomètre
+        potentiometer.draw(window);
+
+        // Afficher la valeur actuelle de timeSpeed
+        Text text;
+        text.setFont(font);
+
+        std::ostringstream oss;
+        oss.precision(1); // Nombre de chiffres après la virgule
+        oss << std::fixed << (1.0 / timeSpeed); // Formater le nombre
+        text.setString("Vitesse de simulation : " + oss.str());
+        text.setCharacterSize(18);
+        text.setFillColor(Color::White);
+        text.setPosition(30, 900);
+        window.draw(text);
+
         window.display();
     }
 
