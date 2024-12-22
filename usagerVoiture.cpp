@@ -26,17 +26,15 @@ protected:
     int vitesse;
     int directionX, directionY;
     int nextDirectionX, nextDirectionY;
-    Vector2f limiteArret;
     bool isBus;
     bool collisionDetectee = false;
-    FeuCirculation** feuVehicules; // Tableau de pointeurs vers les feux
-    FeuCirculation* feu;
+    const std::vector<std::shared_ptr<FeuCirculation>>& feuVehicules;
     RectangleShape hitbox; // Rectangle suivant la voiture
     bool aSupprimer = false; // Indique si la voiture doit être supprimée
 
 public:
-    Usager(int pos_x, int pos_y, int vitesse_, FeuCirculation* tab[], float size, const std::string& image_path, int dirX, int dirY, bool bus)
-        : vitesse(vitesse_), directionX(dirX), directionY(dirY), isBus(bus), feuVehicules(tab), feu(tab[0]), nextDirectionX(0), nextDirectionY(0) {
+    Usager(int pos_x, int pos_y, int vitesse_, std::vector<std::shared_ptr<FeuCirculation>>& feux, float size, const std::string& image_path, int dirX, int dirY, bool bus)
+        : vitesse(vitesse_), directionX(dirX), directionY(dirY), isBus(bus), feuVehicules(feux), nextDirectionX(0), nextDirectionY(0) {
         if (!texture.loadFromFile(image_path)) {
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
@@ -54,11 +52,9 @@ public:
         hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
         hitbox.setPosition(pos_x, pos_y);
         hitbox.setScale(size, size);
-        int lsbDelta = 0;
-        int rsbDelta = 0;
     }
 
-    virtual void deplacer(vector<Plaque>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed, int& entityNum) {
+    virtual void deplacer(vector<std::shared_ptr<Plaque>>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed, int& entityNum){
         float coeffV = 1.0; // Coefficient de vitesse
         int plaque_touch = 1;
         hasTurn = false;
@@ -86,10 +82,10 @@ public:
 
             // Détection de collision avec les plaques
             for (auto& plaque : plaques) {
-                if (plaque.getGlobalBounds().intersects(sprite.getGlobalBounds())) {
+                if (plaque->getGlobalBounds().intersects(sprite.getGlobalBounds())) {
                     touching = true;
-                    FeuEtat etatFeu = plaque.obtenirEtatFeu();
-                    PlaqueEtat etatP = plaque.obtenirEtatPlaque();
+                    FeuEtat etatFeu = plaque->obtenirEtatFeu();
+                    PlaqueEtat etatP = plaque->obtenirEtatPlaque();
                     if (etatP == PlaqueEtat::Ralentisseur) {
                         if ((etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) && plaque_touch != 3) {
                             plaque_touch = 2; // Ralentissement progressive
@@ -103,7 +99,7 @@ public:
                     else if (etatP == PlaqueEtat::Stop) {
                         if (etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) {
                             plaque_touch = 3;
-                            Vector2f plaqueBounds = plaque.getPosition();
+                            Vector2f plaqueBounds = plaque->getPosition();
                             // Calcul de la distance
                             float dx = plaqueBounds.x - pos.x;
                             float dy = plaqueBounds.y - pos.y;
@@ -231,6 +227,7 @@ public:
             
 
             // Détection de collision avec d'autres voitures
+            mettreAJourHitbox();
             if (verifierCollision(voitures)) {
                 //std::cout << "Collision détectée ! Arrêt de la voiture." << std::endl;
                 coeffV = coeffV * 0.85 * timeSpeed; // Arrêter la voiture
@@ -270,10 +267,6 @@ public:
                 aSupprimer = true; // Marquer pour suppression
             }
 
-            mettreAJourHitbox();
-
-
-
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10* timeSpeed))));
         }
     }
@@ -302,7 +295,6 @@ public:
         else if (directionY > 0) { sprite.setRotation(90); }
         else if (directionY < 0) { sprite.setRotation(270); }
 
-        orienterSpriteFeu(feuVehicules); // Réorienter après réinitialisation
         hasTurn = false;
     }
 
@@ -310,6 +302,10 @@ public:
         // Dessiner la voiture
         window.draw(sprite);
         window.draw(hitbox);
+    }
+    
+    FloatRect getGlobalBounds() const {
+        return sprite.getGlobalBounds();
     }
 
     // Vérifier les collisions avec d'autres voitures
@@ -328,22 +324,6 @@ private:
         // Synchroniser la position et la rotation de la hitbox avec le sprite
         hitbox.setPosition(sprite.getPosition());
         hitbox.setRotation(sprite.getRotation());
-    }
-
-    void orienterSpriteFeu(FeuCirculation* tab[]) {
-        if (directionX > 0) {
-            feu = tab[2];
-        }
-        else if (directionX < 0) {
-            feu = tab[3];
-        }
-        else if (directionY > 0) {
-            feu = tab[0];
-        }
-        else if (directionY < 0) {
-            feu = tab[1];
-        }
-        limiteArret = feu->position - Vector2f(directionX * 30, directionY * 30);
     }
 
     void orienterSprite() {

@@ -28,131 +28,98 @@ int main() {
     float timeSpeed = 1.0f;
     int entityNum = 0;
     // Créer un potentiomètre
-    Potentiometer potentiometer(30, 870, 200, 10, 0.1f, 1.0f, &timeSpeed);
+    Potentiometer potentiometer(30, 870, 200.0f, 10.0f, 0.1f, 1.0f, &timeSpeed);
 
-    FeuCirculation feu_1(Vector2f(245, 315), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_2(Vector2f(470, 310), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_3(Vector2f(435, 475), 0.5);
-    FeuCirculation feu_4(Vector2f(690, 315), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_5(Vector2f(955, 310), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_6(Vector2f(920, 475), 0.5);
-    FeuCirculation feu_7(Vector2f(730, 170), 0.5);
-    FeuCirculation feu_8(Vector2f(730, 805), 0.5);
-    FeuCirculation feu_9(Vector2f(915, 970), 0.5);
-    FeuCirculation feu_10(Vector2f(970, 840), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_11(Vector2f(1390, 935), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_12(Vector2f(1700, 840), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_13(Vector2f(1390, 315), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_14(Vector2f(1680, 310), 0.5, FeuEtat::Vert);
-    FeuCirculation feu_15(Vector2f(1640, 475), 0.5);
-    FeuCirculation* feu_vehicule[15] = { &feu_1, &feu_2, &feu_3, &feu_4, &feu_5, &feu_6, &feu_7, &feu_8, &feu_9, &feu_10, &feu_11, &feu_12, &feu_13, &feu_14, &feu_15};
-    vector<FeuCirculation*> feux = { &feu_1, &feu_2, &feu_3, &feu_4, &feu_5, &feu_6, &feu_7, &feu_8, &feu_9, &feu_10, &feu_11, &feu_12, &feu_13, &feu_14, &feu_15 };
-    thread controleThread(&FeuCirculation::controleFeux, std::ref(feux), std::ref(timeSpeed));
-    vector<Plaque> plaques;
-    vector<PlaqueOrientation> plaquesOrientation;
-
-    plaques.emplace_back(205, 340, &feu_1, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
-    plaques.emplace_back(245, 340, &feu_1, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
-
-    plaques.emplace_back(510, 285, &feu_2, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
-    plaques.emplace_back(470, 285, &feu_2, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
-
-    plaques.emplace_back(360, 515, &feu_3, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
-    plaques.emplace_back(360, 475, &feu_3, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
-
-    plaques.emplace_back(650, 340, &feu_4, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
-    plaques.emplace_back(690, 340, &feu_4, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
-
-    plaques.emplace_back(995, 285, &feu_5, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
-    plaques.emplace_back(955, 285, &feu_5, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
-
-    plaques.emplace_back(860, 515, &feu_6, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
-    plaques.emplace_back(860, 475, &feu_6, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
-
-    plaques.emplace_back(795, 130, &feu_7, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Haut);
-    plaques.emplace_back(795, 170, &feu_7, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut);
-
-    plaques.emplace_back(795, 765, &feu_8, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Haut);
-    plaques.emplace_back(795, 805, &feu_8, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut);
-
-    plaques.emplace_back(860, 1010, &feu_9, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
-    plaques.emplace_back(860, 970, &feu_9, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
-
-    plaques.emplace_back(1010, 870, &feu_10, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
-    plaques.emplace_back(970, 870, &feu_10, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
-
-    plaques.emplace_back(1350, 910, &feu_11, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
-    plaques.emplace_back(1390, 910, &feu_11, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
-
-    plaques.emplace_back(1740, 870, &feu_12, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
-    plaques.emplace_back(1700, 870, &feu_12, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
-
-    plaques.emplace_back(1350, 340, &feu_13, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite);
-    plaques.emplace_back(1390, 340, &feu_13, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite);
-
-    plaques.emplace_back(1720, 285, &feu_14, PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche);
-    plaques.emplace_back(1680, 285, &feu_14, PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche);
-
-    plaques.emplace_back(1575, 515, &feu_15, PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas);
-    plaques.emplace_back(1575, 475, &feu_15, PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas);
-
-    
-
-    /*
-        
-    plaquesOrientation.emplace_back(PlaqueOrientation(370, 100, 5, 5, Orientation::Droite));
-    plaquesOrientation.emplace_back(PlaqueOrientation(375, 415, 5, 5, Orientation::Turn));
-
-    plaquesOrientation.emplace_back(PlaqueOrientation(764, 370, 5, 5, Orientation::Gauche));
-    plaquesOrientation.emplace_back(PlaqueOrientation(460, 400, 5, 5, Orientation::Turn));
-
-    plaquesOrientation.emplace_back(PlaqueOrientation(100, 490, 5, 5, Orientation::Gauche));
-    plaquesOrientation.emplace_back(PlaqueOrientation(500, 450, 5, 5, Orientation::Turn));
+    // Feux de circulation (allocation dynamique)
+    std::vector<std::unique_ptr<FeuCirculation>> feux;
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(245, 315), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(470, 310), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(435, 475), 0.5f));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(690, 315), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(955, 310), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(920, 475), 0.5f));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(730, 170), 0.5f));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(730, 805), 0.5f));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(915, 970), 0.5f));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(970, 840), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1390, 935), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1700, 840), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1390, 315), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1680, 310), 0.5f, FeuEtat::Vert));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1640, 475), 0.5f));
 
 
-    plaquesOrientation.emplace_back(PlaqueOrientation(410, 480, 5, 5, Orientation::Turn));
+    std::vector<std::shared_ptr<FeuCirculation>> feuxPtrs;
+    for (auto& feu : feux) {
+        feuxPtrs.push_back(std::move(feu));
+    }
 
-    plaquesOrientation.emplace_back(PlaqueOrientation(500, 764, 5, 5, Orientation::Droite));*/
+    // Plaques (allocation dynamique)
+    std::vector<std::shared_ptr<Plaque>> plaques;
+    plaques.emplace_back(std::make_unique<Plaque>(205, 340, feuxPtrs[0], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(245, 340, feuxPtrs[0], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(510, 285, feuxPtrs[1], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(470, 285, feuxPtrs[1], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(360, 515, feuxPtrs[2], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(360, 475, feuxPtrs[2], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(650, 340, feuxPtrs[3], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(690, 340, feuxPtrs[3], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(995, 285, feuxPtrs[4], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(955, 285, feuxPtrs[4], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(860, 515, feuxPtrs[5], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(860, 475, feuxPtrs[5], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(795, 130, feuxPtrs[6], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(795, 170, feuxPtrs[6], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(795, 765, feuxPtrs[7], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(795, 805, feuxPtrs[7], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(860, 1010, feuxPtrs[8], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(860, 970, feuxPtrs[8], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(1010, 870, feuxPtrs[9], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(970, 870, feuxPtrs[9], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1350, 910, feuxPtrs[10], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1390, 910, feuxPtrs[10], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1740, 870, feuxPtrs[11], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1700, 870, feuxPtrs[11], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1350, 340, feuxPtrs[12], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1390, 340, feuxPtrs[12], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1720, 285, feuxPtrs[13], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1680, 285, feuxPtrs[13], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1575, 515, feuxPtrs[14], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(1575, 475, feuxPtrs[14], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
 
+    std::vector<PlaqueOrientation> plaquesOrientation;
+    plaquesOrientation.emplace_back(360, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(360, 315, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(360, 260, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(970, 870, 5, 5, Orientation::GaucheDroite, -1, 0, true);
+    plaquesOrientation.emplace_back(830, 870, 5, 5, Orientation::Turn, 0, -1);
+    plaquesOrientation.emplace_back(775, 870, 5, 5, Orientation::Turn, 0, 1);
 
-    plaquesOrientation.emplace_back(PlaqueOrientation(360, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true));
-    plaquesOrientation.emplace_back(PlaqueOrientation(360, 315, 5, 5, Orientation::Turn, 1, 0));
-    plaquesOrientation.emplace_back(PlaqueOrientation(360, 260, 5, 5, Orientation::Turn, -1, 0));
+    plaquesOrientation.emplace_back(860, 475, 5, 5, Orientation::GaucheDroite, 0, -1);
+    plaquesOrientation.emplace_back(860, 315, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(860, 260, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(790, 165, 5, 5, Orientation::GaucheDroite, 0, 1);
+    plaquesOrientation.emplace_back(790, 360, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(790, 305, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(685, 335, 5, 5, Orientation::GaucheDroite, 1, 0, true);
+    plaquesOrientation.emplace_back(810, 335, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(875, 335, 5, 5, Orientation::Turn, 0, -1);
 
-    plaquesOrientation.emplace_back(PlaqueOrientation(970, 870, 5, 5, Orientation::GaucheDroite, -1, 0, true));
-    plaquesOrientation.emplace_back(PlaqueOrientation(830, 870, 5, 5, Orientation::Turn, 0, -1));
-    plaquesOrientation.emplace_back(PlaqueOrientation(775, 870, 5, 5, Orientation::Turn, 0, 1));
+    // Usagers (allocation dynamique)
+    std::vector<std::unique_ptr<Usager>> usagers;
+    usagers.emplace_back(std::make_unique<Usager>(501, 133, 2, feuxPtrs, 0.4f, path_image + "voiture_1.png", 1, 0, false));
 
-    // Edition des tournants au carrefour
-
-    plaquesOrientation.emplace_back(PlaqueOrientation(860, 475, 5, 5, Orientation::GaucheDroite, 0, -1));
-    plaquesOrientation.emplace_back(PlaqueOrientation(860, 315, 5, 5, Orientation::Turn, 1, 0));
-    plaquesOrientation.emplace_back(PlaqueOrientation(860, 260, 5, 5, Orientation::Turn, -1, 0));
-
-    plaquesOrientation.emplace_back(PlaqueOrientation(790, 165, 5, 5, Orientation::GaucheDroite, 0, 1));
-    plaquesOrientation.emplace_back(PlaqueOrientation(790, 360, 5, 5, Orientation::Turn, 1, 0));
-    plaquesOrientation.emplace_back(PlaqueOrientation(790, 305, 5, 5, Orientation::Turn, -1, 0));
-    
-    plaquesOrientation.emplace_back(PlaqueOrientation(685, 335, 5, 5, Orientation::GaucheDroite, 1, 0, true));
-    plaquesOrientation.emplace_back(PlaqueOrientation(810, 335, 5, 5, Orientation::Turn, 0, 1));
-    plaquesOrientation.emplace_back(PlaqueOrientation(875, 335, 5, 5, Orientation::Turn, 0, -1));
-
-    vector<unique_ptr<Usager>> usagers;
-    usagers.emplace_back(make_unique<Usager>(501, 133, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
-    //usagers.emplace_back(make_unique<Usager>(420, 880, 4, feu_vehicule, 0.5, path_image + "voiture_1.png", 0, -1, false));
-
-    //usagers.emplace_back(make_unique<Usager>(0, 490, 4, feu_vehicule, 0.5, path_image + "voiture_1.png", 1, 0, false));
-    //usagers.emplace_back(make_unique<Usager>(880, 414, 4, feu_vehicule, 0.5, path_image + "voiture_1.png", -1, 0, false));
-
-    // Remplir le vecteur de pointeurs
-    vector<Usager*> usagersPtrs;
+    std::vector<Usager*> usagersPtrs;
     for (auto& usager : usagers) {
         usagersPtrs.push_back(usager.get());
     }
 
-    // Ajout des threads pour déplacer les usagers
-    vector<thread> threads;
+    // Threads pour les déplacements des usagers
+    std::vector<std::thread> threads;
     for (auto& usager : usagers) {
+        //threads.emplace_back([usager = usager.get(), &plaques, &plaquesOrientation, &usagersPtrs, &timeSpeed, &entityNum]() {
+            //usager->deplacer(plaques, plaquesOrientation, usagersPtrs, timeSpeed, entityNum);
+            //});
         threads.emplace_back(&Usager::deplacer, usager.get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
     }
 
@@ -274,15 +241,12 @@ int main() {
         }
         // Vérifier si le délai est écoulé pour créer une nouvelle voiture
         if (creationClock.getElapsedTime().asMilliseconds() >= nextCreationTime && entityNum < 20) {
-            // Créer une nouvelle voiture
-            int xPosition = distrib(gen) % 1920; // Exemple de position aléatoire en x
-            int yPosition = distrib(gen) % 972; // Exemple de position aléatoire en y
-            usagers.emplace_back(make_unique<Usager>(xPosition, yPosition, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
+            int xPosition = distrib(gen) % 1920;
+            int yPosition = distrib(gen) % 972;
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image + "voiture_1.png", 1, 0, false));
             usagersPtrs.push_back(usagers.back().get());
-
             // Ajouter un thread pour la nouvelle voiture
             threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
-
             // Réinitialiser l'horloge et recalculer le délai
             creationClock.restart();
             nextCreationTime = distrib(gen);
@@ -300,13 +264,14 @@ int main() {
             usager->dessiner(window);
         }
 
-        for (auto feu : feux) {
+        for (const auto& feu : feuxPtrs) {
             feu->dessiner(window);
         }
-
-        // Dessiner les plaques
         for (const auto& plaque : plaques) {
-            plaque.dessiner(window);
+            plaque->dessiner(window);
+        }
+        for (const auto& plaqueOrientation : plaquesOrientation) {
+            plaqueOrientation.dessiner(window);
         }
 
         // Dessiner les plaques d'orientation
@@ -338,16 +303,17 @@ int main() {
         text.setString("Vitesse de simulation : " + oss.str());
         text.setCharacterSize(18);
         text.setFillColor(Color::Black);
-        text.setPosition(30, 900);
+        text.setPosition(30.0f, 900.0f);
         window.draw(text);
 
         window.display();
     }
 
+    // Attente des threads
     for (auto& thread : threads) {
-        if (thread.joinable()) thread.join();
+        if (thread.joinable()) {
+            thread.join();
+        }
     }
-
-    controleThread.join();
     return 0;
 }

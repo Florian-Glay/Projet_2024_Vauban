@@ -18,7 +18,8 @@ endif()
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 
+
 find_package(SFML COMPONENTS window system graphics REQUIRED)
 link_libraries(sfml-graphics sfml-window)
 
-add_executable (Boulevard_Vauban "feuVoiture.cpp" "plaques.cpp" "usagerVoiture.cpp" "main.cpp" "potentiometre.cpp")
+add_executable (Boulevard_Vauban_test "feuVoiture.cpp" "plaques.cpp" "usagerVoiture.cpp" "main.cpp" "potentiometre.cpp")

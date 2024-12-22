@@ -1,6 +1,10 @@
+#include <SFML/Graphics.hpp>
+#include <memory>
+#include <iostream>
 #include "feuVoiture.cpp"
-#include <mutex>
 
+using namespace sf;
+using namespace std;
 
 enum class PlaqueEtat { Ralentisseur, Stop, TournerDG, TournerD, TournerG, CommencerTurn };
 enum class PlaqueDeg { Droite, Gauche, Haut, Bas };
@@ -9,11 +13,11 @@ enum class Orientation { Turn, Gauche, Droite, GaucheDroite };
 class Plaque {
 private:
     RectangleShape plaque;
-    FeuCirculation* feuAssocie; // Feu associé à cette plaque
+    std::shared_ptr<FeuCirculation> feuAssocie; // Feu associé à cette plaque
     PlaqueEtat myEtat;
-    
+
 public:
-    Plaque(float x, float y, FeuCirculation* feu, PlaqueEtat p_etat, float tailleX, float tailleY, PlaqueDeg orientation)
+    Plaque(int x, int y, std::shared_ptr<FeuCirculation> feu, PlaqueEtat p_etat, int tailleX, int tailleY, PlaqueDeg orientation)
         : feuAssocie(feu), myEtat(p_etat) {
         plaque.setSize(Vector2f(tailleX, tailleY));
         plaque.setFillColor(Color(200, 200, 200, 100));
@@ -30,8 +34,6 @@ public:
         else if (orientation == PlaqueDeg::Bas) {
             plaque.setOrigin(plaque.getGlobalBounds().width / 2, 0);
         }
-        int lsbDelta = 0;
-        int rsbDelta = 0;
     }
 
     Vector2f getPosition() const {
@@ -53,32 +55,29 @@ public:
     FloatRect getGlobalBounds() const {
         return plaque.getGlobalBounds();
     }
-    
 };
 
 class PlaqueOrientation {
 private:
-    sf::RectangleShape plaque;
+    RectangleShape plaque;
     Orientation valeur;
-    bool voitureTouchePlaque = false; // Pour éviter de tourner plusieurs fois tant que la voiture est sur la plaque
+    bool voitureTouchePlaque = false; // Évite les actions répétées sur la plaque
     int directionX, directionY;
     bool mustTurn;
+
 public:
-    // Constructeur
-    PlaqueOrientation(float x, float y, float tailleX, float tailleY, Orientation orientation, int dirX, int dirY, bool mustTurn_ = false)
-        : valeur(orientation), directionX(dirX), directionY(dirY), mustTurn(mustTurn_){
-        plaque.setSize(sf::Vector2f(tailleX, tailleY));
-        plaque.setFillColor(sf::Color(150, 150, 200, 150)); // Couleur distinctive
+    PlaqueOrientation(int x, int y, int tailleX, int tailleY, Orientation orientation, int dirX, int dirY, bool mustTurn_ = false)
+        : valeur(orientation), directionX(dirX), directionY(dirY), mustTurn(mustTurn_) {
+        plaque.setSize(Vector2f(tailleX, tailleY));
+        plaque.setFillColor(Color(150, 150, 200, 150)); // Couleur distinctive
         plaque.setPosition(x, y);
-        int lsbDelta = 0;
-        int rsbDelta = 0;
     }
 
     void dessiner(RenderWindow& window) const {
         window.draw(plaque);
     }
 
-    sf::FloatRect getGlobalBounds() const {
+    FloatRect getGlobalBounds() const {
         return plaque.getGlobalBounds();
     }
 
@@ -97,5 +96,4 @@ public:
     int getMustTurn() const {
         return mustTurn;
     }
-
 };
