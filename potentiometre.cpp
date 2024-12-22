@@ -32,6 +32,8 @@ public:
         slider.setRadius(height); // Largeur fixe
         slider.setFillColor(Color(0, 0, 0));
         slider.setPosition(x + width, y - 5); // Centrer le slider
+        int lsbDelta = 0;
+        int rsbDelta = 0;
     }
 
 

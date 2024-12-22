@@ -1,4 +1,5 @@
 #include "feuVoiture.cpp"
+#include <mutex>
 
 
 enum class PlaqueEtat { Ralentisseur, Stop, TournerDG, TournerD, TournerG, CommencerTurn };
@@ -29,6 +30,8 @@ public:
         else if (orientation == PlaqueDeg::Bas) {
             plaque.setOrigin(plaque.getGlobalBounds().width / 2, 0);
         }
+        int lsbDelta = 0;
+        int rsbDelta = 0;
     }
 
     Vector2f getPosition() const {
@@ -50,7 +53,6 @@ public:
     FloatRect getGlobalBounds() const {
         return plaque.getGlobalBounds();
     }
-
     
 };
 
@@ -68,6 +70,8 @@ public:
         plaque.setSize(sf::Vector2f(tailleX, tailleY));
         plaque.setFillColor(sf::Color(150, 150, 200, 150)); // Couleur distinctive
         plaque.setPosition(x, y);
+        int lsbDelta = 0;
+        int rsbDelta = 0;
     }
 
     void dessiner(RenderWindow& window) const {

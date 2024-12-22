@@ -12,6 +12,7 @@
 #include <string>
 #include <chrono>
 #include <sstream> // Inclure pour utiliser std::ostringstream
+#include <stdexcept>
 
 
 using namespace std;
@@ -22,9 +23,10 @@ using namespace sf;
 
 int main() {
 
-    std::srand(std::time(0));
+    std::srand(std::time(NULL));
 
     float timeSpeed = 1.0f;
+    int entityNum = 0;
     // Créer un potentiomètre
     Potentiometer potentiometer(30, 870, 200, 10, 0.1f, 1.0f, &timeSpeed);
 
@@ -121,7 +123,19 @@ int main() {
     plaquesOrientation.emplace_back(PlaqueOrientation(830, 870, 5, 5, Orientation::Turn, 0, -1));
     plaquesOrientation.emplace_back(PlaqueOrientation(775, 870, 5, 5, Orientation::Turn, 0, 1));
 
+    // Edition des tournants au carrefour
 
+    plaquesOrientation.emplace_back(PlaqueOrientation(860, 475, 5, 5, Orientation::GaucheDroite, 0, -1));
+    plaquesOrientation.emplace_back(PlaqueOrientation(860, 315, 5, 5, Orientation::Turn, 1, 0));
+    plaquesOrientation.emplace_back(PlaqueOrientation(860, 260, 5, 5, Orientation::Turn, -1, 0));
+
+    plaquesOrientation.emplace_back(PlaqueOrientation(790, 165, 5, 5, Orientation::GaucheDroite, 0, 1));
+    plaquesOrientation.emplace_back(PlaqueOrientation(790, 360, 5, 5, Orientation::Turn, 1, 0));
+    plaquesOrientation.emplace_back(PlaqueOrientation(790, 305, 5, 5, Orientation::Turn, -1, 0));
+    
+    plaquesOrientation.emplace_back(PlaqueOrientation(685, 335, 5, 5, Orientation::GaucheDroite, 1, 0, true));
+    plaquesOrientation.emplace_back(PlaqueOrientation(810, 335, 5, 5, Orientation::Turn, 0, 1));
+    plaquesOrientation.emplace_back(PlaqueOrientation(875, 335, 5, 5, Orientation::Turn, 0, -1));
 
     vector<unique_ptr<Usager>> usagers;
     usagers.emplace_back(make_unique<Usager>(501, 133, 2, feu_vehicule, 0.4, path_image + "voiture_1.png", 1, 0, false));
@@ -139,7 +153,7 @@ int main() {
     // Ajout des threads pour déplacer les usagers
     vector<thread> threads;
     for (auto& usager : usagers) {
-        threads.emplace_back(&Usager::deplacer, usager.get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed));
+        threads.emplace_back(&Usager::deplacer, usager.get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
     }
 
     // Résolution cible pour le contenu
@@ -223,7 +237,7 @@ int main() {
     std::uniform_int_distribution<> distrib(2000, 4000); // Intervalle entre 2000ms et 4000ms
     sf::Clock creationClock; // Horloge pour mesurer le temps écoulé
     int nextCreationTime = distrib(gen); // Temps jusqu'à la prochaine création de voiture
-    int entityNum = 0;
+    
 
     while (window.isOpen()) {
         Event event;
@@ -258,7 +272,6 @@ int main() {
             // Gérer les événements du potentiomètre
             potentiometer.handleEvent(event, window);
         }
-
         // Vérifier si le délai est écoulé pour créer une nouvelle voiture
         if (creationClock.getElapsedTime().asMilliseconds() >= nextCreationTime && entityNum < 20) {
             // Créer une nouvelle voiture
@@ -268,7 +281,7 @@ int main() {
             usagersPtrs.push_back(usagers.back().get());
 
             // Ajouter un thread pour la nouvelle voiture
-            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed));
+            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
 
             // Réinitialiser l'horloge et recalculer le délai
             creationClock.restart();

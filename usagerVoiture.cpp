@@ -1,4 +1,5 @@
 #include "plaques.cpp"
+#include <mutex>
 
 // Structure pour représenter une position et une direction
 struct PositionDirection {
@@ -31,6 +32,7 @@ protected:
     FeuCirculation** feuVehicules; // Tableau de pointeurs vers les feux
     FeuCirculation* feu;
     RectangleShape hitbox; // Rectangle suivant la voiture
+    bool aSupprimer = false; // Indique si la voiture doit être supprimée
 
 public:
     Usager(int pos_x, int pos_y, int vitesse_, FeuCirculation* tab[], float size, const std::string& image_path, int dirX, int dirY, bool bus)
@@ -52,14 +54,18 @@ public:
         hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
         hitbox.setPosition(pos_x, pos_y);
         hitbox.setScale(size, size);
+        int lsbDelta = 0;
+        int rsbDelta = 0;
     }
 
-    virtual void deplacer(vector<Plaque>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed) {
+    virtual void deplacer(vector<Plaque>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed, int& entityNum) {
         float coeffV = 1.0; // Coefficient de vitesse
         int plaque_touch = 1;
         hasTurn = false;
         bool touchTurn = false;
         sf::Clock lowSpeedClock; // Horloge pour mesurer le temps à faible vitesse
+        Vector2f pos = sprite.getPosition();
+        std::srand(time(NULL));
 
         while (true) {
             Vector2f pos = sprite.getPosition();
@@ -71,10 +77,7 @@ public:
             // Si coeffV est inférieur à 0.3, démarrer ou continuer à mesurer le temps
             if (coeffV < 0.3) {
                 if (lowSpeedClock.getElapsedTime().asSeconds() >= 30.0 * timeSpeed) {
-                    resetPosition(); // Réinitialiser la position si 10 secondes sont écoulées
-                    lowSpeedClock.restart(); // Réinitialiser l'horloge
-                    coeffV = 1.0; // Remettre la vitesse à 1
-                    continue; // Passer à l'itération suivante
+                    aSupprimer = true;
                 }
             }
             else {
@@ -133,10 +136,9 @@ public:
                         if (plaqueOrientation.getMustTurn()) {
                             if (val == Orientation::GaucheDroite) {
                                 touchTurn = true;
-                                std::srand((pos.x + pos.y) * std::time(0));
-                                int choix = std::rand() % 6;
+                                int choix = std::rand() % 2;
                                 hasTurn = true;
-                                if (choix >= 3) {
+                                if (choix == 1) {
                                     if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
                                     else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
                                     else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
@@ -145,43 +147,38 @@ public:
                                 else {
                                     if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
                                     else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
-                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = 1; }
                                     else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
                                 }
                             }
                             else {
                                 touchTurn = true;
-                                std::srand(pos.x + pos.y);
-                                int choix = std::rand() % 100;
-                                if (choix == 1) {
-                                    hasTurn = true;
-                                    if (val == Orientation::Gauche) {
-                                        if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
-                                        else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
-                                        else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
-                                        else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
-                                    }
-
-                                    if (val == Orientation::Droite) {
-                                        if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
-                                        else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
-                                        else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
-                                        else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
-                                    }
+                                hasTurn = true;
+                                if (val == Orientation::Gauche) {
+                                    if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                    else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                    else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                }
+                                if (val == Orientation::Droite) {
+                                    if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                    else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
                                 }
                             }
 
                         }
                         else {
                             touchTurn = true;
-                            std::srand(pos.x + pos.y);
-                            int choix = std::rand() % 100;
+                            //std::srand(time(NULL));
+                            int choix = std::rand() % 10;
                             if (choix == 1) {
                                 hasTurn = true;
                                 if (val == Orientation::Gauche) {
                                     if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
                                     else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
-                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = 1; }
                                     else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
                                 }
 
@@ -190,6 +187,23 @@ public:
                                     else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
                                     else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
                                     else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                }
+                                if (val == Orientation::GaucheDroite) {
+                                    touchTurn = true;
+                                    int choix = std::rand() % 2;
+                                    hasTurn = true;
+                                    if (choix == 1) {
+                                        if (directionX > 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                        else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                        else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                        else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                    }
+                                    else {
+                                        if (directionX > 0) { nextDirectionX = 0; nextDirectionY = 1; }
+                                        else if (directionX < 0) { nextDirectionX = 0; nextDirectionY = -1; }
+                                        else if (directionY > 0) { nextDirectionY = 0; nextDirectionX = 1; }
+                                        else if (directionY < 0) { nextDirectionY = 0; nextDirectionX = -1; }
+                                    }
                                 }
                             }
                             else {
@@ -214,7 +228,7 @@ public:
 
             }
 
-            orienterSprite();
+            
 
             // Détection de collision avec d'autres voitures
             if (verifierCollision(voitures)) {
@@ -223,6 +237,7 @@ public:
                 sprite.move((vitesse * directionX * coeffV * timeSpeed), (vitesse * directionY * coeffV * timeSpeed));
             }
             else {
+                orienterSprite();
                 if (plaque_touch == 1) {
                     coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
                 }
@@ -244,24 +259,27 @@ public:
 
                 // Déplacement normal
                 if (dist >= 0.0) {
-                    sprite.move(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed)), vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed)));
+                    sprite.move(static_cast<float>(vitesse* directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse* directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
                 }
                 else {
-                    sprite.move(vitesse * directionX * coeffV* int(round(1.0 / timeSpeed)), vitesse * directionY * coeffV * int(round(1.0 / timeSpeed)));
+                    sprite.move(static_cast<float>(vitesse* directionX* coeffV* int(round(1.0 / timeSpeed))), static_cast<float>(vitesse* directionY* coeffV* int(round(1.0 / timeSpeed))));
                 }
             }
 
-
-            // Si le véhicule dépasse les limites de la fenêtre, il revient au point de départ
             if (pos.x < -300 || pos.x > 2200 || pos.y < -300 || pos.y > 1400) {
-                resetPosition();
+                aSupprimer = true; // Marquer pour suppression
             }
-
 
             mettreAJourHitbox();
 
+
+
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10* timeSpeed))));
         }
+    }
+
+    bool doitEtreSupprime() const {
+        return aSupprimer;
     }
 
     Sprite& getSprite() { return sprite; }
