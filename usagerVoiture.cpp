@@ -241,10 +241,6 @@ public:
                     }
                 }
 
-                // Reset si bloqué en dehors de la map
-                if ((pos.x <= -90 || pos.x >= 1990 || pos.y <= -150 || pos.y >= 1190) && coeffV < 0.3) {
-                    resetPosition();
-                }
 
                 // Déplacement normal
                 if (dist >= 0.0) {
@@ -265,7 +261,6 @@ public:
             mettreAJourHitbox();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10* timeSpeed))));
-            int a = round(3.5);
         }
     }
 

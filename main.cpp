@@ -162,6 +162,13 @@ int main() {
     box.setOutlineThickness(2);
     box.setPosition(window.getSize().x - 110, window.getSize().y - 60); // En bas à droite
 
+    // Création de la boîte en bas à gauche
+    RectangleShape box_2(Vector2f(230, 70));
+    box_2.setFillColor(Color(200, 200, 200, 255)); // Couleur gris clair
+    box_2.setOutlineColor(Color::Black);          // Bordure noire
+    box_2.setOutlineThickness(2);
+    box_2.setPosition(20, 860); // En bas à droite
+
     // Chargement de la police
     Font font;
     if (!font.loadFromFile(path_image + "arial.ttf")) {
@@ -193,8 +200,24 @@ int main() {
     transparentColor.a = 255; // 128 correspond à 50 % de transparence (255/2)
     backgroundSprite.setColor(transparentColor);
 
+    Texture backgroundImage2;
+    Sprite backgroundSprite2;
+    if (!backgroundImage2.loadFromFile(path_image + "Buildings.png")) {
+        cerr << "Erreur pendant le chargement des images" << endl;
+        return EXIT_FAILURE;
+    }
+    backgroundSprite2.setTexture(backgroundImage2);
+    sf::FloatRect bounds2 = backgroundSprite2.getLocalBounds();
+    backgroundSprite2.setOrigin(bounds2.width / 2, bounds2.height / 2);
+    backgroundSprite2.setPosition(window.getSize().x / 2.0, window.getSize().y / 2.0);
+    backgroundSprite2.setScale(0.5, 0.5);
+    // Définir la transparence à 50 %
+    sf::Color transparentColor2 = backgroundSprite2.getColor(); // Récupère la couleur actuelle
+    transparentColor2.a = 255; // 128 correspond à 50 % de transparence (255/2)
+    backgroundSprite2.setColor(transparentColor2);
 
-    // Création de 
+
+    // Création de l'aléatoire
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(2000, 4000); // Intervalle entre 2000ms et 4000ms
@@ -278,6 +301,9 @@ int main() {
             plaque.dessiner(window);
         }
 
+
+        window.draw(backgroundSprite2);
+
         // Récupération des coordonnées de la souris
         Vector2i mousePos = Mouse::getPosition(window);
         text.setString("X: " + to_string(mousePos.x) + "\nY: " + to_string(mousePos.y));
@@ -287,18 +313,18 @@ int main() {
         window.draw(text); // Dessiner le texte
 
         // Dessiner le potentiomètre
+        window.draw(box_2);  // Dessiner la boîte
         potentiometer.draw(window);
 
         // Afficher la valeur actuelle de timeSpeed
         Text text;
         text.setFont(font);
-
         std::ostringstream oss;
         oss.precision(1); // Nombre de chiffres après la virgule
         oss << std::fixed << (1.0 / timeSpeed); // Formater le nombre
         text.setString("Vitesse de simulation : " + oss.str());
         text.setCharacterSize(18);
-        text.setFillColor(Color::White);
+        text.setFillColor(Color::Black);
         text.setPosition(30, 900);
         window.draw(text);
 
