@@ -19,8 +19,8 @@ const std::vector<PositionDirection> positions = {
 };
 
 const std::vector<PositionDirection> positionsBus = {
-    {{-100, 240}, 1, 0},   // Droite
-    {{2000, 380}, -1, 0},  // Gauche
+    {{-100, 380}, 1, 0},   // Droite
+    {{2000, 240}, -1, 0},  // Gauche
 };
 
 
@@ -138,7 +138,7 @@ public:
                             float dx = plaqueBounds.x - pos.x;
                             float dy = plaqueBounds.y - pos.y;
                             if (isBus) {
-                                dist = sqrt(dx * dx + dy * dy) - 70;
+                                dist = 0;
                             }
                             else {
                                 dist = sqrt(dx * dx + dy * dy) - 25;
@@ -252,7 +252,7 @@ public:
                 }
             }
 
-            if (hasTurn) {
+            if (hasTurn && !isBus) {
                 for (auto& plaqueOrientation : plaquesOrientation) {
                     Orientation val = plaqueOrientation.getValeur();
                     if (val == Orientation::Turn && plaqueOrientation.getGlobalBounds().intersects(sprite.getGlobalBounds()) && plaqueOrientation.getDirX() == nextDirectionX && plaqueOrientation.getDirY() == nextDirectionY) {
@@ -274,32 +274,63 @@ public:
                 sprite.move((vitesse * directionX * coeffV * timeSpeed), (vitesse * directionY * coeffV * timeSpeed));
             }
             else {
-                orienterSprite();
-                if (plaque_touch == 1) {
-                    coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
-                }
-                else if (plaque_touch == 2) {
-                    coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
-                }
-                else if (plaque_touch == 3) {
-                    if (dist >= 0.0) {
-                        if (coeffV < dist) {
-                            dist = dist * 0.9 * timeSpeed;
-                        }
-                        else {
-                            coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
-                        }
+                if (isBus) {
+                    orienterSprite();
+                    if (plaque_touch == 1) {
+                        coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
+                    }
+                    else if (plaque_touch == 2) {
+                        coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
+                    }
+                    else if (plaque_touch == 3) {
+                        if (dist >= 0.0) {
+                            if (coeffV < dist) {
+                                dist = dist * 0.8 * timeSpeed;
+                            }
+                            else {
+                                coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.9 * timeSpeed)));
+                            }
 
+                        }
+                    }
+
+
+                    // Déplacement normal
+                    if (dist >= 1.0) {
+                        sprite.move(static_cast<float>(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
+                    }
+                    else {
+                        sprite.move(static_cast<float>(vitesse * directionX * coeffV * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * coeffV * int(round(1.0 / timeSpeed))));
                     }
                 }
-
-
-                // Déplacement normal
-                if (dist >= 0.0) {
-                    sprite.move(static_cast<float>(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
-                }
                 else {
-                    sprite.move(static_cast<float>(vitesse * directionX * coeffV * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * coeffV * int(round(1.0 / timeSpeed))));
+                    orienterSprite();
+                    if (plaque_touch == 1) {
+                        coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
+                    }
+                    else if (plaque_touch == 2) {
+                        coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
+                    }
+                    else if (plaque_touch == 3) {
+                        if (dist >= 0.0) {
+                            if (coeffV < dist) {
+                                dist = dist * 0.9 * timeSpeed;
+                            }
+                            else {
+                                coeffV = (coeffV < 0.1) ? 0 : ((coeffV > 0.8) ? 0.6 : ((coeffV < 0.2) ? (coeffV - 0.01) : (coeffV * 0.99 * timeSpeed)));
+                            }
+
+                        }
+                    }
+
+
+                    // Déplacement normal
+                    if (dist >= 0.0) {
+                        sprite.move(static_cast<float>(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
+                    }
+                    else {
+                        sprite.move(static_cast<float>(vitesse * directionX * coeffV * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * coeffV * int(round(1.0 / timeSpeed))));
+                    }
                 }
             }
 

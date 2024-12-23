@@ -59,6 +59,7 @@ int main() {
 
     // Plaques (allocation dynamique)
     std::vector<std::shared_ptr<Plaque>> plaques;
+    // VOITURES
     plaques.emplace_back(std::make_unique<Plaque>(205, 340, feuxPtrs[0], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
     plaques.emplace_back(std::make_unique<Plaque>(245, 340, feuxPtrs[0], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
     plaques.emplace_back(std::make_unique<Plaque>(510, 285, feuxPtrs[1], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
@@ -89,6 +90,20 @@ int main() {
     plaques.emplace_back(std::make_unique<Plaque>(1680, 285, feuxPtrs[13], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
     plaques.emplace_back(std::make_unique<Plaque>(1575, 515, feuxPtrs[14], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas));
     plaques.emplace_back(std::make_unique<Plaque>(1575, 475, feuxPtrs[14], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
+
+    // BUS
+    plaques.emplace_back(std::make_unique<Plaque>(205, 380, feuxPtrs[0], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(245, 380, feuxPtrs[0], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1720, 235, feuxPtrs[13], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1680, 235, feuxPtrs[13], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(510, 235, feuxPtrs[1], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(470, 235, feuxPtrs[1], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(995, 235, feuxPtrs[4], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(955, 235, feuxPtrs[4], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(650, 380, feuxPtrs[3], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(690, 380, feuxPtrs[3], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1350, 380, feuxPtrs[12], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1390, 380, feuxPtrs[12], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Droite));
 
     std::vector<PlaqueOrientation> plaquesOrientation;
     // Carrefour 1
