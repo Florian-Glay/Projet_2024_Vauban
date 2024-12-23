@@ -1,0 +1,1 @@
+Déposer le dossier gr12 du github dans le dossier "C:\Program Files\SFML\img"

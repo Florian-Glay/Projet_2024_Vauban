@@ -17,7 +17,7 @@ using namespace std;
 using namespace sf;
 
 #ifdef _MSC_VER
-constexpr char _PATH_IMG_[] = "C:/Program Files/SFML/img/";
+constexpr char _PATH_IMG_[] = "C:/Program Files/SFML/img/gr12/";
 #else
 constexpr char _PATH_IMG_[] = "img/";
 #endif
@@ -84,16 +84,16 @@ public:
         return etat;
     }
 
-    static void controleFeux(vector<FeuCirculation*>& feux, float& timeSpeed) {
+    static void controleFeux(std::vector<std::shared_ptr<FeuCirculation>>& feux, float& timeSpeed) {
         while (true) {
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10000.0 * timeSpeed))));
-            for (auto feu : feux) {
+            for (auto& feu : feux) {
                 if (feu->obtenirEtat() == FeuEtat::Vert) {
                     feu->changerEtat();
                 }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(3000.0 * timeSpeed))));
-            for (auto feu : feux) {
+            for (auto& feu : feux) {
                 if (feu->obtenirEtat() == FeuEtat::Orange) {
                     feu->changerEtat();
                 }
@@ -102,7 +102,7 @@ public:
                 }
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(1000.0 * timeSpeed))));
-            for (auto feu : feux) {
+            for (auto& feu : feux) {
                 if (feu->waiting_time) {
                     feu->changerEtat();
                     feu->waiting_time = false;

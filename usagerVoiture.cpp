@@ -18,15 +18,23 @@ const std::vector<PositionDirection> positions = {
     {{2000, 285}, -1, 0}   // Gauche
 };
 
+const std::vector<PositionDirection> positionsBus = {
+    {{-100, 240}, 1, 0},   // Droite
+    {{2000, 380}, -1, 0},  // Gauche
+};
+
+
 class Usager {
 protected:
     bool hasTurn = false;
     Sprite sprite;
     Texture texture;
+    Texture texturebus;
     int vitesse;
     int directionX, directionY;
     int nextDirectionX, nextDirectionY;
     bool isBus;
+    float size2;
     bool collisionDetectee = false;
     const std::vector<std::shared_ptr<FeuCirculation>>& feuVehicules;
     RectangleShape hitbox; // Rectangle suivant la voiture
@@ -34,27 +42,49 @@ protected:
 
 public:
     Usager(int pos_x, int pos_y, int vitesse_, std::vector<std::shared_ptr<FeuCirculation>>& feux, float size, const std::string& image_path, int dirX, int dirY, bool bus)
-        : vitesse(vitesse_), directionX(dirX), directionY(dirY), isBus(bus), feuVehicules(feux), nextDirectionX(0), nextDirectionY(0) {
-        if (!texture.loadFromFile(image_path)) {
+        : vitesse(vitesse_), directionX(dirX), directionY(dirY), isBus(bus), feuVehicules(feux), nextDirectionX(0), nextDirectionY(0),size2(size){
+        if (!texture.loadFromFile(image_path + "voiture_1.png")) {
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
-        sprite.setTexture(texture);
-        sf::FloatRect bounds = sprite.getGlobalBounds();
-        sprite.setOrigin(bounds.width / 2, bounds.height / 2);
+        if (!texturebus.loadFromFile(image_path + "bus_1.png")) {
+            cerr << "Erreur lors du chargement de la texture" << endl;
+        }
 
-        sprite.setPosition(pos_x, pos_y);
-        resetPosition();
-        sprite.setScale(size, size);
+        if (isBus) {
+            sprite.setTexture(texturebus);
+            sf::FloatRect bounds = sprite.getGlobalBounds();
+            sprite.setOrigin(bounds.width / 2, bounds.height / 2);
+            sprite.setPosition(pos_x, pos_y);
+            sprite.setScale(size2*0.8, size2*0.8);
 
-        // Initialiser le rectangle (hitbox)
-        hitbox.setSize(Vector2f(100.f, 90.f)); // Dimensions 100x50
-        hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
-        hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
-        hitbox.setPosition(pos_x, pos_y);
-        hitbox.setScale(size, size);
+            // Initialiser le rectangle (hitbox)
+            hitbox.setSize(Vector2f(200.f, 60.f)); // Dimensions 100x80
+            hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
+            hitbox.setOrigin((hitbox.getSize().x / 2.f) - 200, hitbox.getSize().y / 2.f);
+            hitbox.setPosition(pos_x, pos_y);
+            hitbox.setScale(size2*0.8, size2*0.8);
+        }
+        else {
+            sprite.setTexture(texture);
+            sf::FloatRect bounds = sprite.getGlobalBounds();
+            sprite.setOrigin(bounds.width / 2, bounds.height / 2);
+
+            sprite.setPosition(pos_x, pos_y);
+            sprite.setScale(size2, size2);
+
+            // Initialiser le rectangle (hitbox)
+            hitbox.setSize(Vector2f(100.f, 60.f)); // Dimensions 100x80
+            hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
+            hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
+            hitbox.setPosition(pos_x, pos_y);
+            hitbox.setScale(size2, size2);
+        }
+
+		resetPosition();
+
     }
 
-    virtual void deplacer(vector<std::shared_ptr<Plaque>>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed, int& entityNum){
+    virtual void deplacer(vector<std::shared_ptr<Plaque>>& plaques, vector<PlaqueOrientation>& plaquesOrientation, vector<Usager*>& voitures, float& timeSpeed, int& entityNum) {
         float coeffV = 1.0; // Coefficient de vitesse
         int plaque_touch = 1;
         hasTurn = false;
@@ -73,6 +103,10 @@ public:
             // Si coeffV est inférieur à 0.3, démarrer ou continuer à mesurer le temps
             if (coeffV < 0.3) {
                 if (lowSpeedClock.getElapsedTime().asSeconds() >= 30.0 * timeSpeed) {
+                    resetPosition(); // Réinitialiser la position si 10 secondes sont écoulées
+                    lowSpeedClock.restart(); // Réinitialiser l'horloge
+                    coeffV = 1.0; // Remettre la vitesse à 1
+                    continue; // Passer à l'itération suivante
                     aSupprimer = true;
                 }
             }
@@ -103,7 +137,13 @@ public:
                             // Calcul de la distance
                             float dx = plaqueBounds.x - pos.x;
                             float dy = plaqueBounds.y - pos.y;
-                            dist = sqrt(dx * dx + dy * dy) - 25;
+                            if (isBus) {
+                                dist = sqrt(dx * dx + dy * dy) - 70;
+                            }
+                            else {
+                                dist = sqrt(dx * dx + dy * dy) - 25;
+                            }
+                            
                             if (dist < 0) {
                                 plaque_touch = 1;
                             }
@@ -168,7 +208,7 @@ public:
                         else {
                             touchTurn = true;
                             //std::srand(time(NULL));
-                            int choix = std::rand() % 10;
+                            int choix = std::rand() % 30;
                             if (choix == 1) {
                                 hasTurn = true;
                                 if (val == Orientation::Gauche) {
@@ -224,7 +264,7 @@ public:
 
             }
 
-            
+
 
             // Détection de collision avec d'autres voitures
             mettreAJourHitbox();
@@ -256,18 +296,19 @@ public:
 
                 // Déplacement normal
                 if (dist >= 0.0) {
-                    sprite.move(static_cast<float>(vitesse* directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse* directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
+                    sprite.move(static_cast<float>(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
                 }
                 else {
-                    sprite.move(static_cast<float>(vitesse* directionX* coeffV* int(round(1.0 / timeSpeed))), static_cast<float>(vitesse* directionY* coeffV* int(round(1.0 / timeSpeed))));
+                    sprite.move(static_cast<float>(vitesse * directionX * coeffV * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * coeffV * int(round(1.0 / timeSpeed))));
                 }
             }
 
             if (pos.x < -300 || pos.x > 2200 || pos.y < -300 || pos.y > 1400) {
+                resetPosition();
                 aSupprimer = true; // Marquer pour suppression
             }
 
-            std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10* timeSpeed))));
+            std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10 * timeSpeed))));
         }
     }
 
@@ -279,16 +320,28 @@ public:
 
     virtual void resetPosition() {
         // Générer un index aléatoire
-        std::srand((sprite.getPosition().x + sprite.getPosition().y) * std::time(0));
-        int index = std::rand() % (positions.size());
 
-        // Sélectionner une position et une direction aléatoires
-        const auto& chosen = positions[index];
 
-        // Appliquer la position et la direction
-        sprite.setPosition(chosen.position);
-        directionX = chosen.directionX;
-        directionY = chosen.directionY;
+        std::srand(std::time(NULL));
+        
+        if (isBus) {
+            int index = std::rand() % (positionsBus.size());
+
+            // Sélectionner une position et une direction aléatoires
+            const auto& chosen = positionsBus[index];
+            sprite.setPosition(chosen.position);
+            directionX = chosen.directionX;
+            directionY = chosen.directionY;
+        }
+        else {
+            int index = std::rand() % (positions.size());
+
+            // Sélectionner une position et une direction aléatoires
+            const auto& chosen = positions[index];
+            sprite.setPosition(chosen.position);
+            directionX = chosen.directionX;
+            directionY = chosen.directionY;
+        }
 
         if (directionX > 0) { sprite.setRotation(0); }
         else if (directionX < 0) { sprite.setRotation(180); }
@@ -303,7 +356,7 @@ public:
         window.draw(sprite);
         window.draw(hitbox);
     }
-    
+
     FloatRect getGlobalBounds() const {
         return sprite.getGlobalBounds();
     }

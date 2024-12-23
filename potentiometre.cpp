@@ -25,51 +25,50 @@ public:
         // Initialiser la piste
         track.setSize(Vector2f(width, height));
         track.setFillColor(Color(150, 150, 150));
-        track.setPosition((float)x, (float)y);
+        track.setPosition((float)x+10, (float)y);
 
         // Initialiser le slider
-        slider.setRadius(height / 2); // Largeur fixe
+        slider.setRadius(height); // Largeur fixe
         slider.setFillColor(Color(0, 0, 0));
         slider.setOrigin(slider.getRadius(), slider.getRadius());
         slider.setPosition((x + width), y + height / 2);
     }
 
     void handleEvent(const Event& event, const RenderWindow& window) {
-        Vector2i mousePos = Mouse::getPosition(window);
-
         if (event.type == Event::MouseButtonPressed && event.mouseButton.button == Mouse::Left) {
-            if (slider.getGlobalBounds().contains(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y))) {
+            Vector2i mousePos = Mouse::getPosition(window);
+            if (slider.getGlobalBounds().contains(mousePos.x, mousePos.y)) {
+                // Vérifier si c'est un double-clic
                 if (firstClick && clickClock.getElapsedTime().asMilliseconds() < 400) {
-                    // Double clic pour réinitialiser la valeur
-                    *targetValue = minValue;
+                    *targetValue = 1.0f; // Réinitialiser la valeur
                     float trackStart = track.getPosition().x;
-                    slider.setPosition(trackStart, slider.getPosition().y);
+                    float trackEnd = track.getPosition().x + track.getSize().x;
+                    float sliderX = trackStart + (1.0f - minValue) / (maxValue - minValue) * (trackEnd - trackStart);
+                    slider.setPosition(sliderX - slider.getRadius() / 2, slider.getPosition().y);
+                    // Réinitialiser le double-clic
                     firstClick = false;
                 }
                 else {
+                    // Premier clic
                     firstClick = true;
                     clickClock.restart();
-                    isDragging = true;
+                    isDragging = true; // Commence à glisser
                 }
             }
         }
-
         if (event.type == Event::MouseButtonReleased && event.mouseButton.button == Mouse::Left) {
-            isDragging = false;
+            isDragging = false; // Arrête de glisser
         }
     }
 
     void update(const RenderWindow& window) {
         if (isDragging) {
             Vector2i mousePos = Mouse::getPosition(window);
+            float sliderX = std::clamp(static_cast<float>(mousePos.x), track.getPosition().x, track.getPosition().x + track.getSize().x);
+            slider.setPosition(sliderX - slider.getRadius() / 2, slider.getPosition().y);
+            // Calculer la nouvelle valeur associée au potentiomètre
             float trackStart = track.getPosition().x;
             float trackEnd = track.getPosition().x + track.getSize().x;
-            float sliderX = std::clamp(static_cast<float>(mousePos.x), trackStart, trackEnd);
-
-            // Mettre à jour la position du slider
-            slider.setPosition(sliderX, slider.getPosition().y);
-
-            // Calculer la valeur associée
             float normalizedValue = (sliderX - trackStart) / (trackEnd - trackStart);
             *targetValue = minValue + normalizedValue * (maxValue - minValue);
         }

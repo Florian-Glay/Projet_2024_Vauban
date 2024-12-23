@@ -27,6 +27,7 @@ int main() {
 
     float timeSpeed = 1.0f;
     int entityNum = 0;
+    int entityNumBus = 0;
     // Créer un potentiomètre
     Potentiometer potentiometer(30, 870, 200.0f, 10.0f, 0.1f, 1.0f, &timeSpeed);
 
@@ -53,6 +54,8 @@ int main() {
     for (auto& feu : feux) {
         feuxPtrs.push_back(std::move(feu));
     }
+
+    thread controleThread(&FeuCirculation::controleFeux, std::ref(feuxPtrs), std::ref(timeSpeed));
 
     // Plaques (allocation dynamique)
     std::vector<std::shared_ptr<Plaque>> plaques;
@@ -88,26 +91,71 @@ int main() {
     plaques.emplace_back(std::make_unique<Plaque>(1575, 475, feuxPtrs[14], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
 
     std::vector<PlaqueOrientation> plaquesOrientation;
-    plaquesOrientation.emplace_back(360, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true);
-    plaquesOrientation.emplace_back(360, 315, 5, 5, Orientation::Turn, 1, 0);
-    plaquesOrientation.emplace_back(360, 260, 5, 5, Orientation::Turn, -1, 0);
-    plaquesOrientation.emplace_back(970, 870, 5, 5, Orientation::GaucheDroite, -1, 0, true);
-    plaquesOrientation.emplace_back(830, 870, 5, 5, Orientation::Turn, 0, -1);
-    plaquesOrientation.emplace_back(775, 870, 5, 5, Orientation::Turn, 0, 1);
+    // Carrefour 1
 
     plaquesOrientation.emplace_back(860, 475, 5, 5, Orientation::GaucheDroite, 0, -1);
     plaquesOrientation.emplace_back(860, 315, 5, 5, Orientation::Turn, 1, 0);
     plaquesOrientation.emplace_back(860, 260, 5, 5, Orientation::Turn, -1, 0);
+
     plaquesOrientation.emplace_back(790, 165, 5, 5, Orientation::GaucheDroite, 0, 1);
     plaquesOrientation.emplace_back(790, 360, 5, 5, Orientation::Turn, 1, 0);
     plaquesOrientation.emplace_back(790, 305, 5, 5, Orientation::Turn, -1, 0);
-    plaquesOrientation.emplace_back(685, 335, 5, 5, Orientation::GaucheDroite, 1, 0, true);
+
+    plaquesOrientation.emplace_back(685, 335, 5, 5, Orientation::GaucheDroite, 1, 0);
     plaquesOrientation.emplace_back(810, 335, 5, 5, Orientation::Turn, 0, 1);
     plaquesOrientation.emplace_back(875, 335, 5, 5, Orientation::Turn, 0, -1);
 
+    plaquesOrientation.emplace_back(950, 290, 5, 5, Orientation::GaucheDroite, -1, 0);
+    plaquesOrientation.emplace_back(765, 290, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(830, 290, 5, 5, Orientation::Turn, 0, -1);
+
+    // Carrefour 2
+
+    plaquesOrientation.emplace_back(1580, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(1580, 315, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(1580, 260, 5, 5, Orientation::Turn, -1, 0);
+
+
+    plaquesOrientation.emplace_back(1390, 335, 5, 5, Orientation::Gauche, 1, 0);
+    plaquesOrientation.emplace_back(1540, 335, 5, 5, Orientation::Turn, 0, 1);
+
+    plaquesOrientation.emplace_back(1680, 290, 5, 5, Orientation::Gauche, -1, 0);
+    plaquesOrientation.emplace_back(1490, 290, 5, 5, Orientation::Turn, 0, 1);
+
+    // Carrefour 3
+    int a = 550;
+    plaquesOrientation.emplace_back(1520, 845, 5, 5, Orientation::GaucheDroite, 0, 1, true);
+    plaquesOrientation.emplace_back(1520, 885, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(1520, 925, 5, 5, Orientation::Turn, 1, 0);
+
+    
+    plaquesOrientation.emplace_back(1390, 900, 5, 5, Orientation::Droite, 1, 0);
+    plaquesOrientation.emplace_back(1595, 900, 5, 5, Orientation::Turn, 0, -1);
+
+    plaquesOrientation.emplace_back(1700, 880, 5, 5, Orientation::Gauche, -1, 0);
+    plaquesOrientation.emplace_back(1550, 880, 5, 5, Orientation::Turn, 0, -1);
+
+    // Autre
+
+    plaquesOrientation.emplace_back(865, 970, 5, 5, Orientation::Droite, 0, -1);
+    plaquesOrientation.emplace_back(865, 885, 5, 5, Orientation::Turn, 1, 0);
+
+    plaquesOrientation.emplace_back(790, 800, 5, 5, Orientation::Gauche, 0, -1);
+    plaquesOrientation.emplace_back(790, 925, 5, 5, Orientation::Turn, 1, 0);
+
+    plaquesOrientation.emplace_back(360, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(360, 315, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(360, 260, 5, 5, Orientation::Turn, -1, 0);
+
+    plaquesOrientation.emplace_back(970, 870, 5, 5, Orientation::GaucheDroite, -1, 0, true);
+    plaquesOrientation.emplace_back(830, 870, 5, 5, Orientation::Turn, 0, -1);
+    plaquesOrientation.emplace_back(775, 870, 5, 5, Orientation::Turn, 0, 1);
+
+    
+
     // Usagers (allocation dynamique)
     std::vector<std::unique_ptr<Usager>> usagers;
-    usagers.emplace_back(std::make_unique<Usager>(501, 133, 2, feuxPtrs, 0.4f, path_image + "voiture_1.png", 1, 0, false));
+    usagers.emplace_back(std::make_unique<Usager>(501, 133, 2, feuxPtrs, 0.4f, path_image, 1, 0, false));
 
     std::vector<Usager*> usagersPtrs;
     for (auto& usager : usagers) {
@@ -203,7 +251,9 @@ int main() {
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> distrib(2000, 4000); // Intervalle entre 2000ms et 4000ms
     sf::Clock creationClock; // Horloge pour mesurer le temps écoulé
+    sf::Clock creationClockBus; // Horloge pour mesurer le temps écoulé
     int nextCreationTime = distrib(gen); // Temps jusqu'à la prochaine création de voiture
+    int nextCreationTimeBus = distrib(gen);
     
 
     while (window.isOpen()) {
@@ -243,7 +293,7 @@ int main() {
         if (creationClock.getElapsedTime().asMilliseconds() >= nextCreationTime && entityNum < 20) {
             int xPosition = distrib(gen) % 1920;
             int yPosition = distrib(gen) % 972;
-            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image + "voiture_1.png", 1, 0, false));
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image, 1, 0, false));
             usagersPtrs.push_back(usagers.back().get());
             // Ajouter un thread pour la nouvelle voiture
             threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
@@ -251,6 +301,19 @@ int main() {
             creationClock.restart();
             nextCreationTime = distrib(gen);
             entityNum++;
+        }
+
+        if (creationClockBus.getElapsedTime().asMilliseconds() >= nextCreationTimeBus && entityNumBus < 4) {
+            int xPosition = distrib(gen) % 1920;
+            int yPosition = distrib(gen) % 972;
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image, 1, 0, true));
+            usagersPtrs.push_back(usagers.back().get());
+            // Ajouter un thread pour la nouvelle voiture
+            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
+            // Réinitialiser l'horloge et recalculer le délai
+            creationClockBus.restart();
+            nextCreationTimeBus = distrib(gen);
+            entityNumBus++;
         }
 
         // Mettre à jour le potentiomètre
@@ -315,5 +378,8 @@ int main() {
             thread.join();
         }
     }
+
+    controleThread.join();
+
     return 0;
 }
