@@ -10,13 +10,13 @@ if(MSVC)
     set(SFML_DIR "C:/Program Files/SFML/lib/cmake/SFML")
     set(SFML_STATIC_LIBRARIES TRUE)
     add_compile_options(
-    $<$<CONFIG:>:/MT> #---------|
-    $<$<CONFIG:Debug>:/MTd> #---|--  Statically link the runtime libraries
-    $<$<CONFIG:Release>:/MT> #--|
+    #$<$<CONFIG:>:/MT> #---------|
+    #$<$<CONFIG:Debug>:/MTd> #---|--  Statically link the runtime libraries
+    #$<$<CONFIG:Release>:/MT> #--|
     )
 endif()
-
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+#set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MDd")
 
 
 find_package(SFML COMPONENTS window system graphics REQUIRED)

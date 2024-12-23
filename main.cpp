@@ -321,7 +321,7 @@ int main() {
         if (creationClockBus.getElapsedTime().asMilliseconds() >= nextCreationTimeBus && entityNumBus < 4) {
             int xPosition = distrib(gen) % 1920;
             int yPosition = distrib(gen) % 972;
-            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image, 1, 0, true));
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 1.5, feuxPtrs, 0.4f, path_image, 1, 0, true));
             usagersPtrs.push_back(usagers.back().get());
             // Ajouter un thread pour la nouvelle voiture
             threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));

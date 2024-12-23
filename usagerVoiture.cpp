@@ -135,12 +135,17 @@ public:
                             plaque_touch = 3;
                             Vector2f plaqueBounds = plaque->getPosition();
                             // Calcul de la distance
-                            float dx = plaqueBounds.x - pos.x;
-                            float dy = plaqueBounds.y - pos.y;
+                            
                             if (isBus) {
-                                dist = 0;
+                                float dx = plaqueBounds.x - (pos.x + directionX * 45);
+                                dist = sqrt(dx * dx);
+                                if (dist < 5 && ((directionX > 0) ? (dx > 0) : (dx < 0))) {
+                                    dist = 0;
+                                }
                             }
                             else {
+                                float dx = plaqueBounds.x - pos.x;
+                                float dy = plaqueBounds.y - pos.y;
                                 dist = sqrt(dx * dx + dy * dy) - 25;
                             }
                             
@@ -208,7 +213,7 @@ public:
                         else {
                             touchTurn = true;
                             //std::srand(time(NULL));
-                            int choix = std::rand() % 30;
+                            int choix = std::rand() % 50;
                             if (choix == 1) {
                                 hasTurn = true;
                                 if (val == Orientation::Gauche) {
@@ -258,6 +263,7 @@ public:
                     if (val == Orientation::Turn && plaqueOrientation.getGlobalBounds().intersects(sprite.getGlobalBounds()) && plaqueOrientation.getDirX() == nextDirectionX && plaqueOrientation.getDirY() == nextDirectionY) {
                         directionY = nextDirectionY;
                         directionX = nextDirectionX;
+                        coeffV = coeffV * 0.5;
                         hasTurn = false;
                     }
                 }
@@ -296,7 +302,7 @@ public:
 
 
                     // Déplacement normal
-                    if (dist >= 1.0) {
+                    if (dist >= 0.0) {
                         sprite.move(static_cast<float>(vitesse * directionX * 0.01 * dist * int(round(1.0 / timeSpeed))), static_cast<float>(vitesse * directionY * 0.01 * dist * int(round(1.0 / timeSpeed))));
                     }
                     else {
@@ -304,7 +310,7 @@ public:
                     }
                 }
                 else {
-                    orienterSprite();
+                    
                     if (plaque_touch == 1) {
                         coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
                     }
@@ -338,6 +344,8 @@ public:
                 resetPosition();
                 aSupprimer = true; // Marquer pour suppression
             }
+
+            orienterSprite();
 
             std::this_thread::sleep_for(std::chrono::milliseconds(int(round(10 * timeSpeed))));
         }
@@ -394,13 +402,16 @@ public:
 
     // Vérifier les collisions avec d'autres voitures
     bool verifierCollision(const vector<Usager*>& voitures) {
-        for (const auto& voiture : voitures) {
+        for (const auto voiture : voitures) {
+            if (voiture == nullptr) continue; // Vérifiez que le pointeur est valide
             if (voiture != this && hitbox.getGlobalBounds().intersects(voiture->sprite.getGlobalBounds())) {
                 return true; // Collision détectée
             }
         }
         return false; // Pas de collision
     }
+
+
 
 private:
 
