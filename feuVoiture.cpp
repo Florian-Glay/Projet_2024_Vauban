@@ -33,13 +33,16 @@ private:
     Texture textureRouge;
     Texture textureOrange;
     Texture textureVert;
+    Texture textureRouge_Pieton;
+    Texture textureVert_Pieton;
     Sprite spriteFeu;
+	bool pieton = false;
 
 public:
     Vector2f position;
     bool waiting_time = false;
 
-    FeuCirculation(Vector2f pos, float size, FeuEtat f_etat = FeuEtat::Rouge) : etat(f_etat), position(pos) {
+    FeuCirculation(Vector2f pos, float size, FeuEtat f_etat = FeuEtat::Rouge, bool pieton_ = false) : etat(f_etat), position(pos), pieton(pieton_) {
         // Charger les textures pour chaque état
         if (!textureRouge.loadFromFile(path_image + "traffic_red_light.png")) {
             cerr << "Erreur lors du chargement de l'image feu_rouge.png" << endl;
@@ -50,32 +53,58 @@ public:
         if (!textureVert.loadFromFile(path_image + "traffic_green_light.png")) {
             cerr << "Erreur lors du chargement de l'image feu_vert.png" << endl;
         }
+        if (!textureVert_Pieton.loadFromFile(path_image + "pieton_green_light.png")) {
+            cerr << "Erreur lors du chargement de l'image feu_vert.png" << endl;
+        }
+        if (!textureRouge_Pieton.loadFromFile(path_image + "pieton_red_light.png")) {
+            cerr << "Erreur lors du chargement de l'image feu_rouge.png" << endl;
+        }
 
         // Initialiser le sprite
-        spriteFeu.setTexture(textureRouge); // Par défaut, rouge
-        spriteFeu.setOrigin(textureRouge.getSize().x / 2.0, textureRouge.getSize().y);
+        if (pieton) {
+            spriteFeu.setTexture(textureRouge_Pieton); // Par défaut, rouge
+            spriteFeu.setOrigin(textureRouge_Pieton.getSize().x / 2.0, textureRouge_Pieton.getSize().y);
+        }
+        else {
+            spriteFeu.setTexture(textureRouge); // Par défaut, rouge
+            spriteFeu.setOrigin(textureRouge.getSize().x / 2.0, textureRouge.getSize().y);
+        }
         spriteFeu.setPosition(pos);
         spriteFeu.setScale(size, size);
         changerTexture();
     }
 
     void changerEtat() {
-        std::lock_guard<std::mutex> lock(mtx);
-        etat = (etat == FeuEtat::Rouge) ? FeuEtat::Vert :
-            (etat == FeuEtat::Vert) ? FeuEtat::Orange : FeuEtat::Rouge;
-        changerTexture();
+            std::lock_guard<std::mutex> lock(mtx);
+            etat = (etat == FeuEtat::Rouge) ? FeuEtat::Vert :
+                (etat == FeuEtat::Vert) ? FeuEtat::Orange : FeuEtat::Rouge;
+            changerTexture();        
     }
 
     void changerTexture() {
-        // Mettre à jour la texture du sprite ici
-        if (etat == FeuEtat::Rouge) {
-            spriteFeu.setTexture(textureRouge);
+        if (pieton) {
+            // Mettre à jour la texture du sprite ici
+            if (etat == FeuEtat::Rouge) {
+                spriteFeu.setTexture(textureRouge_Pieton);
+            }
+            else if (etat == FeuEtat::Orange) {
+                spriteFeu.setTexture(textureVert_Pieton);
+            }
+            else if (etat == FeuEtat::Vert) {
+                spriteFeu.setTexture(textureVert_Pieton);
+            }
         }
-        else if (etat == FeuEtat::Orange) {
-            spriteFeu.setTexture(textureOrange);
-        }
-        else if (etat == FeuEtat::Vert) {
-            spriteFeu.setTexture(textureVert);
+        else {
+            // Mettre à jour la texture du sprite ici
+            if (etat == FeuEtat::Rouge) {
+                spriteFeu.setTexture(textureRouge);
+            }
+            else if (etat == FeuEtat::Orange) {
+                spriteFeu.setTexture(textureOrange);
+            }
+            else if (etat == FeuEtat::Vert) {
+                spriteFeu.setTexture(textureVert);
+            }
         }
     }
 

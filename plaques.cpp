@@ -21,7 +21,7 @@ public:
     Plaque(int x, int y, std::shared_ptr<FeuCirculation> feu, PlaqueEtat p_etat, int tailleX, int tailleY, PlaqueDeg orientation)
         : feuAssocie(feu), myEtat(p_etat), orientation2(orientation) {
         plaque.setSize(Vector2f(tailleX, tailleY));
-        plaque.setFillColor(Color(200, 50, 200, 100));
+		plaque.setFillColor(Color(200, 50, 200, 0)); // Couleur distinctive !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Transparence
         plaque.setPosition(x, y);
         if (orientation == PlaqueDeg::Droite) {
             plaque.setOrigin(plaque.getGlobalBounds().width, plaque.getGlobalBounds().height / 2);
@@ -74,7 +74,7 @@ public:
     PlaqueOrientation(int x, int y, int tailleX, int tailleY, Orientation orientation, int dirX, int dirY, bool mustTurn_ = false)
         : valeur(orientation), directionX(dirX), directionY(dirY), mustTurn(mustTurn_) {
         plaque.setSize(Vector2f(tailleX, tailleY));
-        plaque.setFillColor(Color(150, 50, 200, 150)); // Couleur distinctive
+        plaque.setFillColor(Color(150, 50, 200, 0));  // Couleur distinctive !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Transparence
         plaque.setPosition(x, y);
     }
 

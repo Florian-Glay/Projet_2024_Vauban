@@ -50,6 +50,35 @@ int main() {
     feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1680, 310), 0.5f, FeuEtat::Vert));
     feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1640, 475), 0.5f));
 
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1625, 315), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1460, 315), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(910, 315), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(740, 315), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(425, 315), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(295, 315), 0.5f, FeuEtat::Rouge, true));
+
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1620, 450), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1475, 450), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(895, 450), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(755, 450), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(410, 450), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(310, 450), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1620, 845), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1475, 845), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(895, 845), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(755, 845), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(895, 975), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(755, 975), 0.5f, FeuEtat::Vert, true));
+
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1415, 845), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1415, 945), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1675, 845), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(1675, 945), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(950, 845), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(950, 945), 0.5f, FeuEtat::Rouge, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(895, 220), 0.5f, FeuEtat::Vert, true));
+    feux.emplace_back(std::make_unique<FeuCirculation>(Vector2f(755, 220), 0.5f, FeuEtat::Vert, true));
+
 
     std::vector<std::shared_ptr<FeuCirculation>> feuxPtrs;
     for (auto& feu : feux) {
@@ -107,7 +136,6 @@ int main() {
     plaques.emplace_back(std::make_unique<Plaque>(1630, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
     plaques.emplace_back(std::make_unique<Plaque>(290, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
     plaques.emplace_back(std::make_unique<Plaque>(425, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
-
     plaques.emplace_back(std::make_unique<Plaque>(720, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
     plaques.emplace_back(std::make_unique<Plaque>(720, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
     plaques.emplace_back(std::make_unique<Plaque>(930, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
@@ -122,7 +150,6 @@ int main() {
     plaques.emplace_back(std::make_unique<Plaque>(1440, 930, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
     plaques.emplace_back(std::make_unique<Plaque>(1650, 845, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
     plaques.emplace_back(std::make_unique<Plaque>(1650, 930, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
-
     plaques.emplace_back(std::make_unique<Plaque>(450, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
     plaques.emplace_back(std::make_unique<Plaque>(450, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
     plaques.emplace_back(std::make_unique<Plaque>(270, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
@@ -150,15 +177,12 @@ int main() {
     plaquesOrientation.emplace_back(860, 475, 5, 5, Orientation::GaucheDroite, 0, -1);
     plaquesOrientation.emplace_back(860, 315, 5, 5, Orientation::Turn, 1, 0);
     plaquesOrientation.emplace_back(860, 260, 5, 5, Orientation::Turn, -1, 0);
-
     plaquesOrientation.emplace_back(790, 165, 5, 5, Orientation::GaucheDroite, 0, 1);
     plaquesOrientation.emplace_back(790, 360, 5, 5, Orientation::Turn, 1, 0);
     plaquesOrientation.emplace_back(790, 305, 5, 5, Orientation::Turn, -1, 0);
-
     plaquesOrientation.emplace_back(685, 335, 5, 5, Orientation::GaucheDroite, 1, 0);
     plaquesOrientation.emplace_back(810, 335, 5, 5, Orientation::Turn, 0, 1);
     plaquesOrientation.emplace_back(875, 335, 5, 5, Orientation::Turn, 0, -1);
-
     plaquesOrientation.emplace_back(950, 290, 5, 5, Orientation::GaucheDroite, -1, 0);
     plaquesOrientation.emplace_back(765, 290, 5, 5, Orientation::Turn, 0, 1);
     plaquesOrientation.emplace_back(830, 290, 5, 5, Orientation::Turn, 0, -1);
@@ -168,11 +192,8 @@ int main() {
     plaquesOrientation.emplace_back(1580, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true);
     plaquesOrientation.emplace_back(1580, 315, 5, 5, Orientation::Turn, 1, 0);
     plaquesOrientation.emplace_back(1580, 260, 5, 5, Orientation::Turn, -1, 0);
-
-
     plaquesOrientation.emplace_back(1390, 335, 5, 5, Orientation::Gauche, 1, 0);
     plaquesOrientation.emplace_back(1540, 335, 5, 5, Orientation::Turn, 0, 1);
-
     plaquesOrientation.emplace_back(1680, 290, 5, 5, Orientation::Gauche, -1, 0);
     plaquesOrientation.emplace_back(1490, 290, 5, 5, Orientation::Turn, 0, 1);
 
@@ -181,11 +202,8 @@ int main() {
     plaquesOrientation.emplace_back(1520, 845, 5, 5, Orientation::GaucheDroite, 0, 1, true);
     plaquesOrientation.emplace_back(1520, 885, 5, 5, Orientation::Turn, -1, 0);
     plaquesOrientation.emplace_back(1520, 925, 5, 5, Orientation::Turn, 1, 0);
-
-    
     plaquesOrientation.emplace_back(1390, 900, 5, 5, Orientation::Droite, 1, 0);
     plaquesOrientation.emplace_back(1595, 900, 5, 5, Orientation::Turn, 0, -1);
-
     plaquesOrientation.emplace_back(1700, 880, 5, 5, Orientation::Gauche, -1, 0);
     plaquesOrientation.emplace_back(1550, 880, 5, 5, Orientation::Turn, 0, -1);
 
@@ -193,19 +211,53 @@ int main() {
 
     plaquesOrientation.emplace_back(865, 970, 5, 5, Orientation::Droite, 0, -1);
     plaquesOrientation.emplace_back(865, 885, 5, 5, Orientation::Turn, 1, 0);
-
     plaquesOrientation.emplace_back(790, 800, 5, 5, Orientation::Gauche, 0, -1);
     plaquesOrientation.emplace_back(790, 925, 5, 5, Orientation::Turn, 1, 0);
-
     plaquesOrientation.emplace_back(360, 475, 5, 5, Orientation::GaucheDroite, 0, -1, true);
     plaquesOrientation.emplace_back(360, 315, 5, 5, Orientation::Turn, 1, 0);
     plaquesOrientation.emplace_back(360, 260, 5, 5, Orientation::Turn, -1, 0);
-
     plaquesOrientation.emplace_back(970, 870, 5, 5, Orientation::GaucheDroite, -1, 0, true);
     plaquesOrientation.emplace_back(830, 870, 5, 5, Orientation::Turn, 0, -1);
     plaquesOrientation.emplace_back(775, 870, 5, 5, Orientation::Turn, 0, 1);
 
+    // Pietons
+
+    plaquesOrientation.emplace_back(740, 940, 5, 5, Orientation::GaucheDroite, -1, 0, true);
+    plaquesOrientation.emplace_back(710, 940, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(710, 940, 5, 5, Orientation::Turn, 0, -1);
+    plaquesOrientation.emplace_back(740, 830, 5, 5, Orientation::GaucheDroite, -1, 0, true);
+    plaquesOrientation.emplace_back(710, 830, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(710, 830, 5, 5, Orientation::Turn, 0, -1);
+    /*
+    plaquesOrientation.emplace_back(740, 410, 5, 5, Orientation::GaucheDroite, -1, 0);
+    plaquesOrientation.emplace_back(710, 410, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(710, 410, 5, 5, Orientation::Turn, 0, -1);
+    plaquesOrientation.emplace_back(740, 210, 5, 5, Orientation::GaucheDroite, -1, 0);
+    plaquesOrientation.emplace_back(710, 210, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(710, 210, 5, 5, Orientation::Turn, 0, -1);
     
+    plaquesOrientation.emplace_back(940, 940, 5, 5, Orientation::GaucheDroite, 1, 0);
+    plaquesOrientation.emplace_back(915, 940, 5, 5, Orientation::Turn, 0, 1);
+    plaquesOrientation.emplace_back(915, 940, 5, 5, Orientation::Turn, 0, -1);
+    */
+    plaquesOrientation.emplace_back(450, 220, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(450, 195, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(450, 195, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(270, 220, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(270, 195, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(270, 195, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(1440, 220, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(1440, 195, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(1440, 195, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(1650, 220, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(1650, 195, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(1650, 195, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(1650, 930, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(1650, 950, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(1650, 950, 5, 5, Orientation::Turn, 1, 0);
+    plaquesOrientation.emplace_back(1440, 930, 5, 5, Orientation::GaucheDroite, 0, -1, true);
+    plaquesOrientation.emplace_back(1440, 950, 5, 5, Orientation::Turn, -1, 0);
+    plaquesOrientation.emplace_back(1440, 950, 5, 5, Orientation::Turn, 1, 0);
 
     // Usagers (allocation dynamique)
     std::vector<std::unique_ptr<Usager>> usagers;

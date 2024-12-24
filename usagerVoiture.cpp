@@ -49,7 +49,10 @@ protected:
     Sprite sprite;
     Texture texture;
     Texture texturebus;
-    Texture texturePieton;
+    Texture texturePieton_1;
+    Texture texturePieton_2;
+    Texture texturePieton_3;
+    Texture texturePieton_4;
     int vitesse;
     int directionX, directionY;
     int nextDirectionX, nextDirectionY;
@@ -69,7 +72,16 @@ public:
         if (!texturebus.loadFromFile(image_path + "bus_1.png")) {
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
-        if (!texturePieton.loadFromFile(image_path + "pieton_1.png")) {
+        if (!texturePieton_1.loadFromFile(image_path + "pieton_1.png")) {
+            cerr << "Erreur lors du chargement de la texture" << endl;
+        }
+        if (!texturePieton_2.loadFromFile(image_path + "pieton_2.png")) {
+            cerr << "Erreur lors du chargement de la texture" << endl;
+        }
+        if (!texturePieton_3.loadFromFile(image_path + "pieton_3.png")) {
+            cerr << "Erreur lors du chargement de la texture" << endl;
+        }
+        if (!texturePieton_4.loadFromFile(image_path + "pieton_4.png")) {
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
 
@@ -81,22 +93,22 @@ public:
             sprite.setScale(size2 * 0.8, size2 * 0.8);
 
             // Initialiser le rectangle (hitbox)
-            hitbox.setSize(Vector2f(200.f, 60.f)); // Dimensions 100x80
-            hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
+            hitbox.setSize(Vector2f(200.f, 60.f)); // Dimensions 200x60
+            hitbox.setFillColor(Color(255, 0, 0, 0));  // Couleur distinctive !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Transparence
             hitbox.setOrigin((hitbox.getSize().x / 2.f) - 200, hitbox.getSize().y / 2.f);
             hitbox.setPosition(pos_x, pos_y);
             hitbox.setScale(size2 * 0.8, size2 * 0.8);
         }
         else if (etat_Usager == UsagerEtat::Pieton) {
-            sprite.setTexture(texturePieton);
+            sprite.setTexture(texturePieton_1);
             sf::FloatRect bounds = sprite.getGlobalBounds();
             sprite.setOrigin(bounds.width / 2, bounds.height / 2);
             sprite.setPosition(pos_x, pos_y);
             sprite.setScale(size2 * 0.8, size2 * 0.8);
 
             // Initialiser le rectangle (hitbox)
-            hitbox.setSize(Vector2f(30.f, 40.f)); // Dimensions 100x80
-            hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
+            hitbox.setSize(Vector2f(30.f, 40.f)); // Dimensions 30x40
+            hitbox.setFillColor(Color(255, 0, 0, 0));  // Couleur distinctive !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Transparence
             hitbox.setOrigin((hitbox.getSize().x / 2.f) - 20, hitbox.getSize().y / 2.f);
             hitbox.setPosition(pos_x, pos_y);
             hitbox.setScale(size2 * 0.8, size2 * 0.8);
@@ -111,7 +123,7 @@ public:
 
             // Initialiser le rectangle (hitbox)
             hitbox.setSize(Vector2f(100.f, 60.f)); // Dimensions 100x80
-            hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
+            hitbox.setFillColor(Color(255, 0, 0, 0));  // Couleur distinctive !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! Transparence
             hitbox.setOrigin((hitbox.getSize().x / 2.f) - 100, hitbox.getSize().y / 2.f);
             hitbox.setPosition(pos_x, pos_y);
             hitbox.setScale(size2, size2);
@@ -142,6 +154,15 @@ public:
             bool touching = false;
             float dist = -1.0;
 
+            if (aSupprimer) {
+                mettreAJourHitbox();
+				aSupprimer = false;
+                if (verifierCollision(voitures)) {
+                    resetPosition();
+                    aSupprimer = true;
+                }
+            }
+
             // Si coeffV est inférieur à 0.3, démarrer ou continuer à mesurer le temps
             if (coeffV < 0.3) {
                 if (lowSpeedClock.getElapsedTime().asSeconds() >= 30.0 * timeSpeed) {
@@ -158,6 +179,38 @@ public:
 
             // Détection de collision avec les plaques
             for (auto& plaque : plaques) {
+                if (etat_Usager == UsagerEtat::Pieton && plaque->getGlobalBounds().intersects(hitbox.getGlobalBounds())) {
+                    touching = true;
+                    FeuEtat etatFeu = plaque->obtenirEtatFeu();
+                    PlaqueEtat etatP = plaque->obtenirEtatPlaque();
+                    PlaqueDeg orientationP = plaque->obtenirOrientation();
+                    if (etatP == PlaqueEtat::Stop_P) {
+                        if (etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) {
+                            plaque_touch = 3;
+                            Vector2f plaqueBounds = plaque->getPosition();
+                            if (orientationP == PlaqueDeg::Bas && directionY == 1) {
+                                dist = 0;
+                            }
+                            else if (orientationP == PlaqueDeg::Haut && directionY == -1) {
+                                dist = 0;
+                            }
+                            else if (orientationP == PlaqueDeg::Droite && directionX == 1) {
+                                dist = 0;
+                            }
+                            else if (orientationP == PlaqueDeg::Gauche && directionX == -1) {
+                                dist = 0;
+                            }
+                            else {
+                                plaque_touch = 1;
+                            }
+                            // Ralentissement progressive
+                        }
+                        if (etatFeu == FeuEtat::Vert) {
+                            plaque_touch = 1;
+                            touching = false;
+                        }
+                    }
+                }
                 if (plaque->getGlobalBounds().intersects(sprite.getGlobalBounds())) {
                     touching = true;
                     FeuEtat etatFeu = plaque->obtenirEtatFeu();
@@ -228,7 +281,7 @@ public:
                             plaque_touch = 1;
                             touching = false;
                         }
-                        }
+                    }
                 }
 
                 if ((count > plaques.size() - 1) && !touching) { //plaque == plaques.end() && !touching
@@ -410,6 +463,7 @@ public:
             }
 
             if (pos.x < -300 || pos.x > 2200 || pos.y < -300 || pos.y > 1400) {
+                lowSpeedClock.restart();
                 resetPosition();
                 aSupprimer = true; // Marquer pour suppression
             }
@@ -482,7 +536,7 @@ public:
     bool verifierCollision(const vector<Usager*>& voitures) {
         for (const auto voiture : voitures) {
             if (voiture == nullptr) continue; // Vérifiez que le pointeur est valide
-			if (etat_Usager == UsagerEtat::Pieton && voiture->etat_Usager == UsagerEtat::Pieton)  continue; // Ne pas vérifier les collisions entre piétons
+			if (etat_Usager == UsagerEtat::Pieton && voiture->etat_Usager == UsagerEtat::Pieton && ((voiture->directionX != directionX) || (voiture->directionY != directionY)))  continue; // Ne pas vérifier les collisions entre piétons
             if (voiture != this && hitbox.getGlobalBounds().intersects(voiture->sprite.getGlobalBounds())) {
                 return true; // Collision détectée                   
             }
@@ -527,6 +581,12 @@ private:
         if (std::abs(angleDifference) < rotationStep) {
             // Si la différence est petite, ajuster directement
             sprite.setRotation(targetAngle);
+            if (etat_Usager == UsagerEtat::Pieton){
+                if (directionX > 0) { sprite.setTexture(texturePieton_1); }
+                else if (directionX < 0) { sprite.setTexture(texturePieton_3); }
+                else if (directionY > 0) { sprite.setTexture(texturePieton_4); }
+                else if (directionY < 0) { sprite.setTexture(texturePieton_2); }
+            }
         }
         else {
             // Sinon, ajuster progressivement
