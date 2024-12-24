@@ -22,4 +22,4 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 find_package(SFML COMPONENTS window system graphics REQUIRED)
 link_libraries(sfml-graphics sfml-window)
 
-add_executable (Boulevard_Vauban_test "feuVoiture.cpp" "plaques.cpp" "usagerVoiture.cpp" "main.cpp" "potentiometre.cpp" )
+add_executable (Boulevard_Vauban_Groupe12 "feuVoiture.cpp" "plaques.cpp" "usagerVoiture.cpp" "main.cpp" "potentiometre.cpp" )
