@@ -20,8 +20,27 @@ const std::vector<PositionDirection> positions = {
 
 const std::vector<PositionDirection> positionsBus = {
     {{-100, 380}, 1, 0},   // Droite
-    {{2000, 240}, -1, 0},  // Gauche
+    {{2000, 240}, -1, 0}  // Gauche
 };
+
+// Liste des positions possibles
+const std::vector<PositionDirection> positionsPieton = {
+    {{1920, 200}, -1, 0},   // Gauche
+    {{1920, 415}, -1, 0},   // Gauche
+    {{1920, 830}, -1, 0},   // Gauche
+    {{1920, 950}, -1, 0},   // Gauche
+    {{-10, 200}, 1, 0},   // Droite
+    {{-10, 415}, 1, 0},   // Droite
+    {{265, 1000}, 0, -1},  // Haut
+    {{445, 1000}, 0, -1},  // Haut
+    {{720, 1000}, 0, -1},  // Haut
+    {{930, 1000}, 0, -1},  // Haut
+    {{720, -10}, 0, 1},  // Bas
+    {{930, -10}, 0, 1}  // Bas
+};
+
+enum class UsagerEtat { Voiture, Bus, Pieton };
+
 
 
 class Usager {
@@ -30,10 +49,11 @@ protected:
     Sprite sprite;
     Texture texture;
     Texture texturebus;
+    Texture texturePieton;
     int vitesse;
     int directionX, directionY;
     int nextDirectionX, nextDirectionY;
-    bool isBus;
+    UsagerEtat etat_Usager;
     float size2;
     bool collisionDetectee = false;
     const std::vector<std::shared_ptr<FeuCirculation>>& feuVehicules;
@@ -41,28 +61,45 @@ protected:
     bool aSupprimer = false; // Indique si la voiture doit être supprimée
 
 public:
-    Usager(int pos_x, int pos_y, int vitesse_, std::vector<std::shared_ptr<FeuCirculation>>& feux, float size, const std::string& image_path, int dirX, int dirY, bool bus)
-        : vitesse(vitesse_), directionX(dirX), directionY(dirY), isBus(bus), feuVehicules(feux), nextDirectionX(0), nextDirectionY(0),size2(size){
+    Usager(int pos_x, int pos_y, int vitesse_, std::vector<std::shared_ptr<FeuCirculation>>& feux, float size, const std::string& image_path, int dirX, int dirY, UsagerEtat etat)
+        : vitesse(vitesse_), directionX(dirX), directionY(dirY), etat_Usager(etat), feuVehicules(feux), nextDirectionX(0), nextDirectionY(0),size2(size){
         if (!texture.loadFromFile(image_path + "voiture_1.png")) {
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
         if (!texturebus.loadFromFile(image_path + "bus_1.png")) {
             cerr << "Erreur lors du chargement de la texture" << endl;
         }
+        if (!texturePieton.loadFromFile(image_path + "pieton_1.png")) {
+            cerr << "Erreur lors du chargement de la texture" << endl;
+        }
 
-        if (isBus) {
+        if (etat_Usager == UsagerEtat::Bus) {
             sprite.setTexture(texturebus);
             sf::FloatRect bounds = sprite.getGlobalBounds();
             sprite.setOrigin(bounds.width / 2, bounds.height / 2);
             sprite.setPosition(pos_x, pos_y);
-            sprite.setScale(size2*0.8, size2*0.8);
+            sprite.setScale(size2 * 0.8, size2 * 0.8);
 
             // Initialiser le rectangle (hitbox)
             hitbox.setSize(Vector2f(200.f, 60.f)); // Dimensions 100x80
             hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
             hitbox.setOrigin((hitbox.getSize().x / 2.f) - 200, hitbox.getSize().y / 2.f);
             hitbox.setPosition(pos_x, pos_y);
-            hitbox.setScale(size2*0.8, size2*0.8);
+            hitbox.setScale(size2 * 0.8, size2 * 0.8);
+        }
+        else if (etat_Usager == UsagerEtat::Pieton) {
+            sprite.setTexture(texturePieton);
+            sf::FloatRect bounds = sprite.getGlobalBounds();
+            sprite.setOrigin(bounds.width / 2, bounds.height / 2);
+            sprite.setPosition(pos_x, pos_y);
+            sprite.setScale(size2 * 0.8, size2 * 0.8);
+
+            // Initialiser le rectangle (hitbox)
+            hitbox.setSize(Vector2f(30.f, 40.f)); // Dimensions 100x80
+            hitbox.setFillColor(Color(255, 0, 0, 100)); // Couleur semi-transparente pour la visualisation
+            hitbox.setOrigin((hitbox.getSize().x / 2.f) - 20, hitbox.getSize().y / 2.f);
+            hitbox.setPosition(pos_x, pos_y);
+            hitbox.setScale(size2 * 0.8, size2 * 0.8);
         }
         else {
             sprite.setTexture(texture);
@@ -93,6 +130,11 @@ public:
         Vector2f pos = sprite.getPosition();
         std::srand(time(NULL));
 
+        mettreAJourHitbox();
+        if (verifierCollision(voitures)) {
+			resetPosition();
+        }
+
         while (true) {
             Vector2f pos = sprite.getPosition();
             int count = 0;
@@ -120,6 +162,7 @@ public:
                     touching = true;
                     FeuEtat etatFeu = plaque->obtenirEtatFeu();
                     PlaqueEtat etatP = plaque->obtenirEtatPlaque();
+                    PlaqueDeg orientationP = plaque->obtenirOrientation();
                     if (etatP == PlaqueEtat::Ralentisseur) {
                         if ((etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) && plaque_touch != 3) {
                             plaque_touch = 2; // Ralentissement progressive
@@ -130,13 +173,13 @@ public:
                             touching = false;
                         }
                     }
-                    else if (etatP == PlaqueEtat::Stop) {
+                    else if (etatP == PlaqueEtat::Stop && etat_Usager != UsagerEtat::Pieton) {
                         if (etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) {
                             plaque_touch = 3;
                             Vector2f plaqueBounds = plaque->getPosition();
                             // Calcul de la distance
-                            
-                            if (isBus) {
+
+                            if (etat_Usager == UsagerEtat::Bus) {
                                 float dx = plaqueBounds.x - (pos.x + directionX * 45);
                                 dist = sqrt(dx * dx);
                                 if (dist < 5 && ((directionX > 0) ? (dx > 0) : (dx < 0))) {
@@ -148,7 +191,7 @@ public:
                                 float dy = plaqueBounds.y - pos.y;
                                 dist = sqrt(dx * dx + dy * dy) - 25;
                             }
-                            
+
                             if (dist < 0) {
                                 plaque_touch = 1;
                             }
@@ -160,6 +203,32 @@ public:
                             touching = false;
                         }
                     }
+                    else if (etatP == PlaqueEtat::Stop_P && etat_Usager == UsagerEtat::Pieton) {
+                        if (etatFeu == FeuEtat::Rouge || etatFeu == FeuEtat::Orange) {
+                            plaque_touch = 3;
+                            Vector2f plaqueBounds = plaque->getPosition();
+                            if (orientationP == PlaqueDeg::Bas && directionY == 1) {
+                                dist = 0;
+                            }
+                            else if (orientationP == PlaqueDeg::Haut && directionY == -1) {
+                                dist = 0;
+                            }
+                            else if (orientationP == PlaqueDeg::Droite && directionX == 1) {
+                                dist = 0;
+                            }
+                            else if (orientationP == PlaqueDeg::Gauche && directionX == -1) {
+                                dist = 0;
+                            }
+                            else {
+                                plaque_touch = 1;
+                            }
+                            // Ralentissement progressive
+                        }
+                        if (etatFeu == FeuEtat::Vert) {
+                            plaque_touch = 1;
+                            touching = false;
+                        }
+                        }
                 }
 
                 if ((count > plaques.size() - 1) && !touching) { //plaque == plaques.end() && !touching
@@ -257,7 +326,7 @@ public:
                 }
             }
 
-            if (hasTurn && !isBus) {
+            if (hasTurn && etat_Usager != UsagerEtat::Bus) {
                 for (auto& plaqueOrientation : plaquesOrientation) {
                     Orientation val = plaqueOrientation.getValeur();
                     if (val == Orientation::Turn && plaqueOrientation.getGlobalBounds().intersects(sprite.getGlobalBounds()) && plaqueOrientation.getDirX() == nextDirectionX && plaqueOrientation.getDirY() == nextDirectionY) {
@@ -280,7 +349,7 @@ public:
                 sprite.move((vitesse * directionX * coeffV * timeSpeed), (vitesse * directionY * coeffV * timeSpeed));
             }
             else {
-                if (isBus) {
+                if (etat_Usager == UsagerEtat::Bus) {
                     orienterSprite();
                     if (plaque_touch == 1) {
                         coeffV = (coeffV > 0.9) ? 1.0 : ((coeffV < 0.2) ? (coeffV + 0.01) : (coeffV * 1.01 / timeSpeed)); // Accélération progressive
@@ -363,11 +432,20 @@ public:
 
         std::srand(std::time(NULL));
         
-        if (isBus) {
+        if (etat_Usager == UsagerEtat::Bus) {
             int index = std::rand() % (positionsBus.size());
 
             // Sélectionner une position et une direction aléatoires
             const auto& chosen = positionsBus[index];
+            sprite.setPosition(chosen.position);
+            directionX = chosen.directionX;
+            directionY = chosen.directionY;
+        }
+        else if (etat_Usager == UsagerEtat::Pieton) {
+            int index = std::rand() % (positionsPieton.size());
+
+            // Sélectionner une position et une direction aléatoires
+            const auto& chosen = positionsPieton[index];
             sprite.setPosition(chosen.position);
             directionX = chosen.directionX;
             directionY = chosen.directionY;
@@ -404,8 +482,9 @@ public:
     bool verifierCollision(const vector<Usager*>& voitures) {
         for (const auto voiture : voitures) {
             if (voiture == nullptr) continue; // Vérifiez que le pointeur est valide
+			if (etat_Usager == UsagerEtat::Pieton && voiture->etat_Usager == UsagerEtat::Pieton)  continue; // Ne pas vérifier les collisions entre piétons
             if (voiture != this && hitbox.getGlobalBounds().intersects(voiture->sprite.getGlobalBounds())) {
-                return true; // Collision détectée
+                return true; // Collision détectée                   
             }
         }
         return false; // Pas de collision

@@ -28,6 +28,7 @@ int main() {
     float timeSpeed = 1.0f;
     int entityNum = 0;
     int entityNumBus = 0;
+    int entityNumPieton = 0;
     // Créer un potentiomètre
     Potentiometer potentiometer(30, 870, 200.0f, 10.0f, 0.1f, 1.0f, &timeSpeed);
 
@@ -90,6 +91,44 @@ int main() {
     plaques.emplace_back(std::make_unique<Plaque>(1680, 285, feuxPtrs[13], PlaqueEtat::Stop, 5, 10, PlaqueDeg::Gauche));
     plaques.emplace_back(std::make_unique<Plaque>(1575, 515, feuxPtrs[14], PlaqueEtat::Ralentisseur, 10, 40, PlaqueDeg::Bas));
     plaques.emplace_back(std::make_unique<Plaque>(1575, 475, feuxPtrs[14], PlaqueEtat::Stop, 10, 5, PlaqueDeg::Bas));
+
+    // Pietons
+    plaques.emplace_back(std::make_unique<Plaque>(740, 210, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(910, 210, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(740, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(910, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(740, 830, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(910, 830, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(740, 940, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(910, 940, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1460, 830, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1630, 830, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(1460, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(1630, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+    plaques.emplace_back(std::make_unique<Plaque>(290, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Droite));
+    plaques.emplace_back(std::make_unique<Plaque>(425, 410, feuxPtrs[3], PlaqueEtat::Stop_P, 5, 10, PlaqueDeg::Gauche));
+
+    plaques.emplace_back(std::make_unique<Plaque>(720, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(720, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(930, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(930, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(930, 845, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(930, 930, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(1440, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(1440, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(1650, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(1650, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(1440, 845, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(1440, 930, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(1650, 845, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(1650, 930, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+
+    plaques.emplace_back(std::make_unique<Plaque>(450, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(450, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+    plaques.emplace_back(std::make_unique<Plaque>(270, 220, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Bas));
+    plaques.emplace_back(std::make_unique<Plaque>(270, 400, feuxPtrs[2], PlaqueEtat::Stop_P, 10, 5, PlaqueDeg::Haut));
+
+
 
     // BUS
     plaques.emplace_back(std::make_unique<Plaque>(205, 380, feuxPtrs[0], PlaqueEtat::Ralentisseur, 40, 10, PlaqueDeg::Droite));
@@ -170,7 +209,7 @@ int main() {
 
     // Usagers (allocation dynamique)
     std::vector<std::unique_ptr<Usager>> usagers;
-    usagers.emplace_back(std::make_unique<Usager>(501, 133, 2, feuxPtrs, 0.4f, path_image, 1, 0, false));
+    usagers.emplace_back(std::make_unique<Usager>(501, 133, 2, feuxPtrs, 0.4f, path_image, 1, 0, UsagerEtat::Voiture));
 
     std::vector<Usager*> usagersPtrs;
     for (auto& usager : usagers) {
@@ -267,8 +306,10 @@ int main() {
     std::uniform_int_distribution<> distrib(2000, 4000); // Intervalle entre 2000ms et 4000ms
     sf::Clock creationClock; // Horloge pour mesurer le temps écoulé
     sf::Clock creationClockBus; // Horloge pour mesurer le temps écoulé
+    sf::Clock creationClockPieton; // Horloge pour mesurer le temps écoulé
     int nextCreationTime = distrib(gen); // Temps jusqu'à la prochaine création de voiture
     int nextCreationTimeBus = distrib(gen);
+    int nextCreationTimePieton = distrib(gen);
     
 
     while (window.isOpen()) {
@@ -308,7 +349,7 @@ int main() {
         if (creationClock.getElapsedTime().asMilliseconds() >= nextCreationTime && entityNum < 20) {
             int xPosition = distrib(gen) % 1920;
             int yPosition = distrib(gen) % 972;
-            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image, 1, 0, false));
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 2, feuxPtrs, 0.4f, path_image, 1, 0, UsagerEtat::Voiture));
             usagersPtrs.push_back(usagers.back().get());
             // Ajouter un thread pour la nouvelle voiture
             threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
@@ -321,7 +362,7 @@ int main() {
         if (creationClockBus.getElapsedTime().asMilliseconds() >= nextCreationTimeBus && entityNumBus < 4) {
             int xPosition = distrib(gen) % 1920;
             int yPosition = distrib(gen) % 972;
-            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 1.5, feuxPtrs, 0.4f, path_image, 1, 0, true));
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 1.5, feuxPtrs, 0.4f, path_image, 1, 0, UsagerEtat::Bus));
             usagersPtrs.push_back(usagers.back().get());
             // Ajouter un thread pour la nouvelle voiture
             threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
@@ -329,6 +370,19 @@ int main() {
             creationClockBus.restart();
             nextCreationTimeBus = distrib(gen);
             entityNumBus++;
+        }
+
+        if (creationClockPieton.getElapsedTime().asMilliseconds() >= nextCreationTimePieton && entityNumPieton < 15) {
+            int xPosition = distrib(gen) % 1920;
+            int yPosition = distrib(gen) % 972;
+            usagers.emplace_back(std::make_unique<Usager>(xPosition, yPosition, 1.0, feuxPtrs, 0.8f, path_image, 1, 0, UsagerEtat::Pieton));
+            usagersPtrs.push_back(usagers.back().get());
+            // Ajouter un thread pour la nouvelle voiture
+            threads.emplace_back(&Usager::deplacer, usagers.back().get(), std::ref(plaques), std::ref(plaquesOrientation), std::ref(usagersPtrs), std::ref(timeSpeed), std::ref(entityNum));
+            // Réinitialiser l'horloge et recalculer le délai
+            creationClockPieton.restart();
+            nextCreationTimePieton = distrib(gen);
+            entityNumPieton++;
         }
 
         // Mettre à jour le potentiomètre
